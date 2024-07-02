@@ -35,7 +35,7 @@ function HeyGen() {
 
     async function fetchAccessToken() {
         try {
-            const response = await fetch('http://localhost:3001/get-access-token', {
+            const response = await fetch('https://mock-talk-server.onrender.com/get-access-token', {
                 method: 'POST'
             });
             const result = await response.json();
