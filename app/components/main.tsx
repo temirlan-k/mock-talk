@@ -1,11 +1,12 @@
-
+'use client';
 import Link from "next/link"
 import dynamic from 'next/dynamic';
 import Head from 'next/head';
-import { Button } from "../components/ui/button"
-import { Card, CardHeader, CardContent } from "../components/ui/card"
+import { Button } from "./ui/button"
+import { Card, CardHeader, CardContent } from "./ui/card"
 import Header from "./ui/header"
-const HeyGen = dynamic(() => import('../components/HeygenComponent'), { ssr: false });
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import HeyGen from "./HeygenComponent";
 
 export function Main() {
   return (
@@ -19,10 +20,8 @@ export function Main() {
               conversations and providing personalized feedback.
             </p>
             <button type="button" className="text-white bg-gradient-to-br from-black to-white hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">Start Interview</button>
-
           </div>
           <div>
-            <HeyGen/>
           </div>
 
         </section>
@@ -100,7 +99,7 @@ export function Main() {
   )
 }
 
-function MicIcon(props:any) {
+function MicIcon(props: any) {
   return (
     <svg
       {...props}
