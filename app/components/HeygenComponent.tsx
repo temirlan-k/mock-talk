@@ -1,269 +1,5 @@
-// "use client";
-// import { useEffect, useRef, useState } from 'react';
-// import { Configuration, NewSessionData, StreamingAvatarApi } from '@heygen/streaming-avatar';
-// import { Textarea } from './ui/textarea';
-// import { Button } from '../stream_talk_component/ui/button';
-// import axios from 'axios';
 
-// const predefinedAvatarId = "josh_lite3_20230714";
-// const predefinedVoiceId = "077ab11b14f04ce0b49b5f6e5cc20979";
 
-// function HeyGen() {
-//     const [stream, setStream] = useState<MediaStream>();
-//     const [debug, setDebug] = useState<string>();
-//     const [data, setData] = useState<NewSessionData>();
-//     const [chatMessages, setChatMessages] = useState<{ sender: string, message: string }[]>([]);
-//     const [isRecording, setIsRecording] = useState(false);
-//     const avatar = useRef<StreamingAvatarApi | null>(null);
-//     const mediaStream = useRef<HTMLVideoElement>(null);
-//     const [initialized, setInitialized] = useState(false);
-//     const messageInputRef = useRef<HTMLTextAreaElement>(null);
-//     const recognitionRef = useRef<SpeechRecognition | null>(null);
-
-//     const debounce = (func: (...args: any[]) => void, delay: number) => {
-//         let timeoutId: NodeJS.Timeout;
-//         return (...args: any[]) => {
-//             if (timeoutId) clearTimeout(timeoutId);
-//             timeoutId = setTimeout(() => {
-//                 func(...args);
-//             }, delay);
-//         };
-//     };
-
-//     async function fetchAccessToken() {
-//         try {
-//             const response = await fetch('http://localhost:8000/get-access-token', {
-//                 method: 'POST'
-//             });
-//             const result = await response.json();
-//             const token = result.token;
-//             console.log('Access Token:', token);
-//             return token;
-//         } catch (error) {
-//             console.error('Error fetching access token:', error);
-//             return '';
-//         }
-//     }
-
-//     async function startAvatarSession() {
-//         await updateToken();
-
-//         if (!avatar.current) {
-//             setDebug('Avatar API is not initialized');
-//             return;
-//         }
-
-//         try {
-//             const res = await avatar.current.createStartAvatar({
-//                 newSessionRequest: {
-//                     quality: "low",
-//                     avatarName: predefinedAvatarId,
-//                     voice: { voiceId: predefinedVoiceId }
-//                 }
-//             }, setDebug);
-//             setData(res);
-//             setStream(avatar.current.mediaStream);
-//         } catch (error) {
-//             console.error('Error starting avatar session:', error);
-//         }
-//     };
-
-//     async function updateToken() {
-//         const newToken = await fetchAccessToken();
-//         avatar.current = new StreamingAvatarApi(
-//             new Configuration({ accessToken: newToken, jitterBuffer: 200 })
-//         );
-//         setInitialized(true);
-//     }
-
-//     async function stopAvatarSession() {
-//         if (!initialized || !avatar.current) {
-//             setDebug('Avatar API not initialized');
-//             return;
-//         }
-//         await avatar.current.stopAvatar({ stopSessionRequest: { sessionId: data?.sessionId } }, setDebug);
-//     }
-
-//     async function speakText(text: string) {
-//         if (!initialized || !avatar.current) {
-//             setDebug('Avatar API not initialized');
-//             return;
-//         }
-
-//         try {
-//             await avatar.current.speak({ taskRequest: { text: text, sessionId: data?.sessionId } }).catch((e) => {
-//                 setDebug(e.message);
-//             });
-//         } catch (error) {
-//             console.error('Error speaking text:', error);
-//         }
-//     }
-
-//     const sendMessage = debounce(async () => {
-//         const message = messageInputRef.current?.value;
-//         if (!message) {
-//             setDebug('Please enter a message');
-//             return;
-//         }
-
-//         setChatMessages((prevMessages) => [...prevMessages, { sender: 'User', message }]);
-
-//         try {
-//             const response = await axios.post('http://127.0.0.1:8000/chat', {
-//                 session_id: data?.sessionId,
-//                 message: message
-//             });
-
-//             const responseMessage = response.data.response;
-//             console.log('Response from backend:', responseMessage);
-
-//             setChatMessages((prevMessages) => [...prevMessages, { sender: 'AI', message: responseMessage }]);
-
-//             // Speak the response message
-//             await speakText(responseMessage);
-
-//         } catch (error) {
-//             console.error('Error sending message to backend:', error);
-//             setDebug('Error sending message');
-//         }
-//     }, 300);
-
-//     useEffect(() => {
-//         async function init() {
-//             const newToken = await fetchAccessToken();
-//             avatar.current = new StreamingAvatarApi(
-//                 new Configuration({ accessToken: newToken, jitterBuffer: 200 })
-//             );
-//             await startAvatarSession();
-//         };
-//         init();
-//     }, []);
-
-//     useEffect(() => {
-//         if (stream && mediaStream.current) {
-//             mediaStream.current.srcObject = stream;
-//             mediaStream.current.onloadedmetadata = () => {
-//                 mediaStream.current!.play().catch(error => {
-//                     console.error('Error playing video:', error);
-//                 });
-//                 setDebug("Playing");
-//             };
-//         }
-//     }, [stream]);
-
-//     const handleVoiceInput = () => {
-//         if (recognitionRef.current) {
-//             if (isRecording) {
-//                 recognitionRef.current.stop();
-//                 setIsRecording(false);
-//             } else {
-//                 recognitionRef.current.start();
-//                 setIsRecording(true);
-//             }
-//         }
-//     };
-
-//     return (
-//         <div className="HeyGenStreamingAvatar">
-//             <header className="App-header p-4 bg-800 text-black">
-//                 <p className="mb-4">{debug}</p>
-//                 <div className="MediaPlayer mb-4 text-center">
-//                     <video
-//                         playsInline
-//                         autoPlay
-//                         width={800}
-//                         ref={mediaStream}
-//                         className="border border-gray-300 rounded"
-//                     />
-//                 </div>
-//                 <div className="flex items-center gap-2 mt-2">
-//                     <Textarea
-//                         placeholder="Type your message..."
-//                         className="flex-1 resize-none"
-//                         ref={messageInputRef}
-//                     />
-//                     <Button variant="ghost" size="icon" onClick={sendMessage}>
-//                         <SendIcon className="w-5 h-5" />
-//                         <span className="sr-only">Send</span>
-//                     </Button>
-//                     <Button variant="ghost" size="icon" onClick={handleVoiceInput}>
-//                         {isRecording ? <StopIcon className="w-5 h-5" /> : <MicIcon className="w-5 h-5" />}
-//                         <span className="sr-only">{isRecording ? 'Stop Recording' : 'Start Recording'}</span>
-//                     </Button>
-//                 </div>
-//                 <div className="ChatMessages mt-4 h-96 overflow-y-auto border border-gray-300 p-4">
-//                     {chatMessages.map((chat, index) => (
-//                         <div key={index} className={`Message ${chat.sender} mb-2`}>
-//                             <strong>{chat.sender}:</strong> {chat.message}
-//                         </div>
-//                     ))}
-//                 </div>
-//             </header>
-//         </div>
-//     );
-// }
-
-// export default HeyGen;
-
-// function SendIcon(props: any) {
-//     return (
-//         <svg
-//             {...props}
-//             xmlns="http://www.w3.org/2000/svg"
-//             width="24"
-//             height="24"
-//             viewBox="0 0 24 24"
-//             fill="none"
-//             stroke="currentColor"
-//             strokeWidth="2"
-//             strokeLinecap="round"
-//             strokeLinejoin="round"
-//         >
-//             <path d="m22 2-7 20-4-9-9-4Z" />
-//             <path d="M22 2 11 13" />
-//         </svg>
-//     )
-// }
-
-// function MicIcon(props: any) {
-//     return (
-//         <svg
-//             {...props}
-//             xmlns="http://www.w3.org/2000/svg"
-//             width="24"
-//             height="24"
-//             viewBox="0 0 24 24"
-//             fill="none"
-//             stroke="currentColor"
-//             strokeWidth="2"
-//             strokeLinecap="round"
-//             strokeLinejoin="round"
-//         >
-//             <path d="M9 16h2a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H9a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3z" />
-//             <path d="M10 9H8a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h2m4-6v6m2-3h3" />
-//         </svg>
-//     )
-// }
-
-// function StopIcon(props: any) {
-//     return (
-//         <svg
-//             {...props}
-//             xmlns="http://www.w3.org/2000/svg"
-//             width="24"
-//             height="24"
-//             viewBox="0 0 24 24"
-//             fill="none"
-//             stroke="currentColor"
-//             strokeWidth="2"
-//             strokeLinecap="round"
-//             strokeLinejoin="round"
-//         >
-//             <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
-//             <line x1="10" y1="10" x2="14" y2="14" />
-//         </svg>
-//     )
-// }
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import { Configuration, NewSessionData, StreamingAvatarApi } from '@heygen/streaming-avatar';
@@ -271,6 +7,9 @@ import { Button } from '../stream_talk_component/ui/button';
 import axios from 'axios';
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+const BASE_LOCAL_URL = 'http://localhost:8000';
+const BASE_DEV_URL = 'https://mock-talk-server.onrender.com';
 
 const predefinedAvatarId = "josh_lite3_20230714";
 const predefinedVoiceId = "077ab11b14f04ce0b49b5f6e5cc20979";
@@ -290,7 +29,7 @@ function HeyGen() {
 
     async function fetchAccessToken() {
         try {
-            const response = await fetch('http://localhost:8000/get-access-token', {
+            const response = await fetch(`${BASE_DEV_URL}/get-access-token`, {
                 method: 'POST'
             });
             const result = await response.json();
@@ -367,7 +106,7 @@ function HeyGen() {
         setChatMessages((prevMessages) => [...prevMessages, { sender: 'User', message }]);
 
         try {
-            const response = await axios.post('http://127.0.0.1:8000/chat', {
+            const response = await axios.post(`${BASE_DEV_URL}/chat`, {
                 session_id: data?.sessionId,
                 message: message
             });
