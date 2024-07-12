@@ -1,12 +1,6 @@
 'use client';
-import Link from "next/link"
-import dynamic from 'next/dynamic';
-import Head from 'next/head';
-import { Button } from "./ui/button"
+
 import { Card, CardHeader, CardContent } from "./ui/card"
-import Header from "./ui/header"
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import HeyGen from "./HeygenComponent";
 
 export function Main() {
   return (
