@@ -1,0 +1,16 @@
+.testimonials-swiper {
+    padding-bottom: 50px;
+}
+
+.testimonials-swiper .swiper-button-next,
+.testimonials-swiper .swiper-button-prev {
+    color: #000;
+}
+
+.testimonials-swiper .swiper-pagination-bullet {
+    background: #000;
+}
+
+.testimonials-swiper .swiper-pagination-bullet-active {
+    background: #000;
+}
