@@ -8,7 +8,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/components/ui/use-toast";
 import FileInput from "../RegisterForm/FileInputUi";
 
-const RegisterForm = ({ isOpen, onClose }) => {
+// Define the types for the props
+interface RegisterFormProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+const RegisterForm: React.FC<RegisterFormProps> = ({ isOpen, onClose }) => {
     const [formData, setFormData] = useState({
         name: "",
         email: "",

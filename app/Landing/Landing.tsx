@@ -240,7 +240,7 @@ export function Landing() {
 export default Landing;
 // SVG компоненты остаются без изменений
 
-function BotIcon(props) {
+function BotIcon(props:any) {
     return (
         <svg
             {...props}
@@ -262,7 +262,7 @@ function BotIcon(props) {
     );
 }
 
-function PlayIcon(props) {
+function PlayIcon(props:any) {
     return (
         <svg
             {...props}
@@ -281,7 +281,7 @@ function PlayIcon(props) {
     );
 }
 
-function RefreshCwIcon(props) {
+function RefreshCwIcon(props:any) {
     return (
         <svg
             {...props}
@@ -302,7 +302,7 @@ function RefreshCwIcon(props) {
     );
 }
 
-function PlusIcon(props) {
+function PlusIcon(props:any) {
     return (
         <svg
             {...props}

@@ -1,12 +1,9 @@
 // api/whisper.ts
-require('dotenv').config();
-
-console.log('API Key:', process.env.OPENAI_API_KEY);
-
+import * as dotenv from 'dotenv';
+dotenv.config();
 const API_KEY = process.env.OPENAI_API_KEY
 
 export async function transcribeAudio(audioBlob: Blob): Promise<string> {
-    console.log('API Key:', process.env.OPENAI_API_KEY);
 
     const formData = new FormData();
     formData.append('file', audioBlob, 'audio.webm');

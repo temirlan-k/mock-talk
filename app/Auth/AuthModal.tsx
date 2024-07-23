@@ -8,7 +8,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/components/ui/use-toast";
 import FileInput from "../RegisterForm/FileInputUi";
 
-const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
+// Define the props type
+interface AuthModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onAuthSuccess: (token: string) => void; // Ensure this is defined as expected
+}
+
+// Define the errors type
+type ErrorsType = {
+    email?: string;
+    password?: string;
+    name?: string;
+    jobTitle?: string;
+    experience?: string;
+    cv?: string;
+};
+
+const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [loginData, setLoginData] = useState({ email: "", password: "" });
     const [registerData, setRegisterData] = useState({
@@ -19,7 +36,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
         experience: ""
     });
     const [cv, setCv] = useState<File | null>(null);
-    const [errors, setErrors] = useState({});
+    const [errors, setErrors] = useState<ErrorsType>({});
     const router = useRouter();
     const { toast } = useToast();
 
@@ -47,10 +64,11 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
             const response = await axios.post("http://localhost:8002/token", loginData, {
                 headers: { 'Content-Type': 'application/json' }
             });
-            localStorage.setItem("userToken", response.data.token);
+            const token = response.data.token;
+            localStorage.setItem("userToken", token);
             toast({ title: "Успешный вход", description: "Добро пожаловать!" });
             onClose();
-            onAuthSuccess();
+            onAuthSuccess(token); // Pass the token here
             router.push('/talk');
         } catch (error: any) {
             if (error.response && error.response.status === 401) {
@@ -83,10 +101,11 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
             const response = await axios.post("http://localhost:8002/register", formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            localStorage.setItem("userToken", response.data.token);
+            const token = response.data.token;
+            localStorage.setItem("userToken", token);
             toast({ title: "Регистрация успешна", description: "Вы успешно зарегистрированы." });
             onClose();
-            onAuthSuccess();
+            onAuthSuccess(token); // Pass the token here
             router.push('/');
         } catch (error: any) {
             setErrors({});
@@ -211,9 +230,9 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                         <div>
                             <Label htmlFor="jobTitle">Должность</Label>
                             <Input
-                                placeholder="Frontend Developer"
                                 id="jobTitle"
                                 type="text"
+                                placeholder="Frontend Developer"
                                 value={registerData.jobTitle}
                                 onChange={handleRegisterChange}
                                 required
@@ -224,9 +243,9 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                         <div>
                             <Label htmlFor="experience">Опыт</Label>
                             <Input
-                                placeholder="5 месяцев"
                                 id="experience"
                                 type="text"
+                                placeholder="2 года"
                                 value={registerData.experience}
                                 onChange={handleRegisterChange}
                                 required
@@ -235,22 +254,25 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                             {errors.experience && <p className="text-red-500 text-sm">{errors.experience}</p>}
                         </div>
                         <div>
-                            <Label htmlFor="cv">CV</Label>
-                            <FileInput id="cv" onChange={handleFileChange} />
+                            <Label htmlFor="cv">Резюме (pdf)</Label>
+                                <FileInput
+                                    id="cv"
+                                    accept=".pdf"
+                                    onChange={handleFileChange}
+                                    className={`border rounded-md ${errors.cv ? 'border-red-500' : 'border-gray-300'}`}
+                                />
+
                             {errors.cv && <p className="text-red-500 text-sm">{errors.cv}</p>}
                         </div>
-                        <Button type="submit" className="w-full bg-black hover:bg-gray-800 text-white">
+                        <Button type="submit" className="w-full bg-black hover:bg-gray-800 text-white py-3 rounded-md">
                             Зарегистрироваться
                         </Button>
                     </form>
                 )}
-                <div className="mt-4 text-center">
-                    <button
-                        onClick={() => setIsLogin(!isLogin)}
-                        className="text-sm text-gray-600 hover:text-black"
-                    >
-                        {isLogin ? "Нет аккаунта? Зарегистрируйтесь" : "Уже есть аккаунт? Войдите"}
-                    </button>
+                <div className="flex justify-center mt-4">
+                    <Button onClick={() => setIsLogin(!isLogin)} variant="link">
+                        {isLogin ? "Нет аккаунта? Зарегистрируйтесь" : "Есть аккаунт? Войдите"}
+                    </Button>
                 </div>
             </DialogContent>
         </Dialog>

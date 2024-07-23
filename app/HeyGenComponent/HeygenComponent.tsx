@@ -5,10 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Configuration, StreamingAvatarApi, CreateStreamingAvatarRequest, NewSessionRequestQualityEnum, NewSessionData } from '@heygen/streaming-avatar';
 import { Button, IconButton } from '@mui/material';
 import { Mic as MicIcon, Pause as PauseIcon, Send as SendIcon, Stop as StopIcon, Refresh as RefreshIcon, Code as CodeIcon } from '@mui/icons-material';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
 import axios from 'axios';
-import LogoutIcon from '@mui/icons-material/Logout';
-import ChatIcon from '@mui/icons-material/Chat';
 import CloseIcon from '@mui/icons-material/Close';
 import { MessageSquare, Code } from "lucide-react"
 import { Button as SButton} from "@/app/Landing/ui/button"
@@ -22,15 +19,17 @@ const predefinedAvatarId = "josh_lite3_20230714";
 const predefinedVoiceId = "077ab11b14f04ce0b49b5f6e5cc20979";
 
 function HeyGen() {
+    const [stream, setStream] = useState<MediaStream | null>(null);
+    const [accessToken, setAccessToken] = useState<string | null>(null); // Add this state if needed
+    const [data, setData] = useState<{ sessionId?: string } | null>(null); // Update the type as needed
+    const [debug, setDebug] = useState<string>('');
+    const mediaStream = useRef<HTMLVideoElement | null>(null);
+    const mediaStreamRef = useRef<MediaStream | null>(null); // Adjust type as needed
     const [isCodeModalOpen, setIsCodeModalOpen] = useState(false);
     const [isCodeRunnerOpen, setIsCodeRunnerOpen] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [stream, setStream] = useState<MediaStream>();
-    const [debug, setDebug] = useState<string>('');
-    const [data, setData] = useState<NewSessionData>();
     const [chatMessages, setChatMessages] = useState<{ sender: string, message: string }[]>([]);
     const [recognizedText, setRecognizedText] = useState<string>('');
-    const [accessToken, setAccessToken] = useState<string | null>(null);
     const [hasSpokenWelcomeMessage, setHasSpokenWelcomeMessage] = useState(false);
     const [code, setCode] = useState<string>('// Введите ваш код здесь');
     const [language, setLanguage] = useState<string>('javascript');
@@ -38,18 +37,17 @@ function HeyGen() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false); // Define the loading state
     const avatar = useRef<StreamingAvatarApi | null>(null);
-    const mediaStream = useRef<HTMLVideoElement>(null);
     const recognitionRef = useRef<any>(null);
     const [isChatOpen, setIsChatOpen] = useState(false);
+    const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [isRecording, setIsRecording] = useState(false);
 
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-    const [userToken, setJwtToken] = useState(null);
+    const [userToken, setJwtToken] = useState<string|null>(null);
 
-    const [isRecording, setIsRecording] = useState(false);
-    const mediaRecorderRef = useRef(null);
-    const audioChunksRef = useRef([]);
-    const silenceTimeoutRef = useRef(null);
+    const audioChunksRef = useRef<Blob[]>([]);
 
     useEffect(() => {
         const savedToken = localStorage.getItem('userToken');
@@ -57,7 +55,6 @@ function HeyGen() {
             setJwtToken(savedToken);
         }
     }, []);
-
 
     const handleGetFeedbackAndExit = async () => {
         if (userToken) {
@@ -70,17 +67,21 @@ function HeyGen() {
         }
     };
 
-    const handleAuthSuccess = async (token) => {
+    const handleAuthSuccess = async (token:string) => {
         setJwtToken(token);
         localStorage.setItem('userToken', token);
         setIsAuthModalOpen(false);
         await getFeedbackAndSave(token);
-        router.push('/'); // Перенаправляем на лендинг после успешной авторизации и сохранения фидбэка
+        router.push('/'); 
     };
 
 
-    const getFeedbackAndSave = async (token) => {
+    const getFeedbackAndSave = async (token: string) => {
         try {
+            if (!data) {
+                throw new Error("No data available");
+            }
+
             const response = await axios.post(`${BASE_DEV_URL}/end-session/`, {
                 session_id: data.sessionId
             }, {
@@ -89,12 +90,11 @@ function HeyGen() {
                 }
             });
 
-            const aiFeedback = response.data.feedback;
-            console.log('AI Feedback:', aiFeedback);
+            // Handle response here
         } catch (error) {
-            console.error('Error getting and saving feedback:', error);
-            // Обработка ошибок
+            console.error(error);
         }
+
     };
 
 
@@ -163,6 +163,7 @@ function HeyGen() {
             console.error('Error starting recording:', error);
         }
     };
+
 
     const stopRecording = () => {
         if (mediaRecorderRef.current && isRecording) {
@@ -307,17 +308,20 @@ function HeyGen() {
         }
     }
 
-    useEffect(() => {
-        async function fetchAndSetAccessToken() {
-            const token = await fetchAccessToken();
-            setAccessToken(token);
-            await startAvatarSession(token);
-        }
 
-        fetchAndSetAccessToken();
+
+    useEffect(() => {
+        async function init() {
+            const newToken = await fetchAccessToken();
+            avatar.current = new StreamingAvatarApi(
+                new Configuration({ accessToken: newToken, jitterBuffer: 200 })
+            );
+            await startAvatarSession(newToken);
+        };
+        init();
     }, []);
 
-    async function startAvatarSession(token) {
+    async function startAvatarSession(token: string) {
         if (data?.sessionId) {
             setDebug('Avatar session already started');
             return;
@@ -381,12 +385,18 @@ function HeyGen() {
             setDebug('Avatar API not initialized or session not started');
             return;
         }
+
         await avatar.current.stopAvatar({ stopSessionRequest: { sessionId: data?.sessionId } }, setDebug);
-        setStream(undefined);
+        setStream(null); // Use null instead of undefined
     }
 
-    async function speakText(text: string, sessionId: string) {
+
+    async function speakText(text: string, sessionId: string | undefined ) {
         try {
+            if (!sessionId) {
+                throw new Error("Session ID is required");
+            }
+
             if (!avatar.current || !sessionId) {
                 setDebug('Avatar API is not initialized');
                 return;
@@ -433,10 +443,15 @@ function HeyGen() {
             ]);
         } catch (error) {
             console.error('Error ending session:', error);
-            if (error.response && error.response.data && error.response.data.message.includes('10005')) {
-                setErrorMessage('Session state is wrong: closed. Please start a new session.');
+
+            if (axios.isAxiosError(error)) {
+                if (error.response && error.response.data && error.response.data.message.includes('10005')) {
+                    setErrorMessage('Session state is wrong: closed. Please start a new session.');
+                } else {
+                    setErrorMessage('Произошла ошибка при завершении сессии');
+                }
             } else {
-                setErrorMessage('Произошла ошибка при завершении сессии');
+                setErrorMessage('Произошла неизвестная ошибка');
             }
         } finally {
             setIsLoading(false);
@@ -450,32 +465,45 @@ function HeyGen() {
 
     useEffect(() => {
         async function init() {
-            await startAvatarSession();
+            if (accessToken) {
+                await startAvatarSession(accessToken);
+            }
         }
+
         init();
     }, [accessToken]);
 
+
     useEffect(() => {
         if (stream && mediaStream.current && data?.sessionId) {
-            mediaStream.current.srcObject = stream;
-            mediaStream.current.onloadedmetadata = () => {
-                mediaStream.current.play()
-                    .then(() => {
-                        setDebug("Playing");
-                        setTimeout(async () => {
-                            if (!hasSpokenWelcomeMessage) {
-                                const welcomeMessage = "Здравствуйте! Я ваш виртуальный интервьюер.Давайте начнем. Расскажите немного о себе.";
-                                await speakText(welcomeMessage, data.sessionId);
-                                setHasSpokenWelcomeMessage(true);
-                            }
-                        }, 2000); // Delay for 3 seconds
-                    })
-                    .catch(error => {
-                        console.error('Error playing video:', error);
-                    });
-            };
+            const mediaElement = mediaStream.current;
+            if (mediaElement) {
+                mediaElement.srcObject = stream;
+                mediaElement.onloadedmetadata = () => {
+                    mediaElement.play()
+                        .then(() => {
+                            setDebug("Playing");
+                            setTimeout(async () => {
+                                if (!hasSpokenWelcomeMessage) {
+                                    const welcomeMessage = "Здравствуйте! Я ваш виртуальный интервьюер.Давайте начнем. Расскажите немного о себе.";
+                                    if (data.sessionId) { // Ensure sessionId is defined
+                                        await speakText(welcomeMessage, data.sessionId);
+                                        setHasSpokenWelcomeMessage(true);
+                                    } else {
+                                        console.error('Session ID is not available');
+                                    }
+                                }
+                            }, 2000); // Delay for 2 seconds
+                        })
+                        .catch(error => {
+                            console.error('Error playing video:', error);
+                        });
+                };
+            }
         }
     }, [stream, hasSpokenWelcomeMessage, data?.sessionId]);
+
+
 
     // const startRecording = () => {
     //     setIsRecording(true);
@@ -711,7 +739,7 @@ function HeyGen() {
                 <AuthModal
                     isOpen={isAuthModalOpen}
                     onClose={() => setIsAuthModalOpen(false)}
-                    onAuthSuccess={handleAuthSuccess}
+                    onAuthSuccess={handleAuthSuccess} // Now matches the expected type
                 />
             </div>
         </div>

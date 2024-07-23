@@ -1,3 +1,4 @@
+// LoginForm.tsx
 import React, { useState } from "react";
 import axios from "axios";
 import { useRouter } from 'next/navigation';
@@ -7,7 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 
-const LoginForm = ({ isOpen, onClose, onLoginSuccess }) => {
+// Define the type for the props
+interface LoginFormProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onLoginSuccess: () => void;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ isOpen, onClose, onLoginSuccess }) => {
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
     const router = useRouter();

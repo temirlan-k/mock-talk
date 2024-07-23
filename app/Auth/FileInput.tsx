@@ -4,8 +4,8 @@ import React, { ChangeEvent } from "react";
 export interface FileInputProps {
     id: string;
     onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-    className?: string;
-    accept?: string;  // Ensure this is present
+    className?: string; // Ensure this line is present
+    accept?: string;
 }
 
 const FileInput: React.FC<FileInputProps> = ({ id, onChange, className, accept }) => {

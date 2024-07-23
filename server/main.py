@@ -40,12 +40,14 @@ API_KEY_1 = 'MDBmZDE1NmRkM2Y3NDliZTg2NDNlMjRiZTU5OThlN2QtMTcxOTIyNTMzNg=='
 API_KEY_2 = 'ZDhmYzQxNDcxZTUxNGNiMzg4MmRkMTFhNDM2ZjVlMzktMTcyMTY2NjI4OQ=='
 API_KEY_3 = 'NWNhYjgxNDIzZjA1NDkzYjg2YTYxNmE1ZWZjMjM0NmYtMTcyMTY2NzgxMA=='
 API_KEY_4 = 'ZjYyYTA0ZjExNDcwNGZkMzkyODA5YzA5ZmI3Yzc1YzgtMTcyMTY3MTQ2MA=='
+API_KEY_5 = 'Zjk4ZjQwOWVkM2ExNDk5Y2FkMTU1NTI3MzA2NDgwMWEtMTcyMTY5NzI1OQ=='
+API_KEY_6 = ''
 
 API_KEYS = [
 
     API_KEY_1,
     API_KEY_2,
-    API_KEY_3,  
+    API_KEY_3,
     API_KEY_4
     
 
@@ -142,7 +144,8 @@ model = ChatOpenAI(
     model="gpt-4o",
     max_retries=2,
     api_key=os.getenv("OPENAI_API_KEY"),
-    temperature=0.5,
+    temperature=0.1,
+    
 )
 vectordb_memory_chain = RunnablePassthrough(
     llm=model,
@@ -251,6 +254,16 @@ async def read_users_me(token: dict = Depends(jwt_bearer)):
     decoded_token = decode_jwt(token)
     user = await users_collection.find_one({"_id":decoded_token.get("_id")})
     return user
+
+
+
+
+@app.get("/feedbacks/me")
+async def get_my_feedbacks(token: dict = Depends(jwt_bearer)):
+    decoded_token = decode_jwt(token)
+    feedbacks = await sessions_collection.find({"user_id": decoded_token.get("_id")}).to_list(length=100)
+    return feedbacks
+
 
 @app.post("/token")
 async def login_for_access_token(login_data: LoginRequest):
@@ -378,10 +391,11 @@ async def upload_resume(file: UploadFile = File(...), session_id: str = ""):
 
 class FeedbackRequest(BaseModel):
     session_id: str
-    user_id: str
 
 @app.post("/end-session/")
-async def end_session_and_save_feedback(request: FeedbackRequest):
+async def end_session_and_save_feedback(request: FeedbackRequest, token: dict = Depends(jwt_bearer)):
+    decoded_token = decode_jwt(token)
+    user_id = decoded_token.get("_id")
     session_id = request.session_id
     feedback_prompt = (
         f"Дай фидбэк по пройденному пользователем интервью, вот вся история интервью - {get_session_messages(session_id)}. "
@@ -391,24 +405,22 @@ async def end_session_and_save_feedback(request: FeedbackRequest):
         "Сгенерируй фидбэк в формате JSON. Вот пример желаемого формата JSON: "
         '{"soft_skill": "soft_skills_feedback_text", "hard_skill": "hard_skills_feedback_text", "approximately_grade": "grade", "recommendations": "useful_recommendations_and_materials"}'
     )
-
-    config = {"configurable": {"session_id": session_id}}
-    feedback_response = with_message_history.invoke(
-        [HumanMessage(content=feedback_prompt)],
-        config=config,
+    chat_history = get_session_history(session_id)
+    ai_feedback = await with_message_history.invoke(
+        [SystemMessage(content=feedback_prompt)]
+        [HumanMessage(content=chat_history)],
+        {"configurable": {"session_id": session_id}}
     )
-
-    feedback = feedback_response.content
 
     session_data = {
         "session_id": session_id,
-        "user_id": request.user_id,
-        "feedback": feedback,
+        "user_id": user_id,
+        "feedback": ai_feedback,
         "timestamp": time.time()
     }
     await sessions_collection.insert_one(session_data)
 
-    return {"feedback": feedback}
+    return {"feedback": ai_feedback}
 
 
 if __name__ == "__main__":

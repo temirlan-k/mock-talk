@@ -1,15 +1,12 @@
 // api/whisper.ts
-require('dotenv').config();
-
-console.log('API Key:', process.env.OPENAI_API_KEY);
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 const API_KEY = process.env.OPENAI_API_KEY
 
-const s = "sk-proj-csNxzNIOCChLkfrKPBpoT3BlbkFJx40kipQsForWDzmmjXOk"
 
-console.log('API Key:', process.env.OPENAI_API_KEY);
 export async function transcribeAudio(audioBlob: Blob): Promise<string> {
-    console.log('API Key:', process.env.OPENAI_API_KEY);
+    console.log('API Key:', API_KEY);
 
     const formData = new FormData();
     formData.append('file', audioBlob, 'audio.webm');
@@ -18,7 +15,7 @@ export async function transcribeAudio(audioBlob: Blob): Promise<string> {
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${s}`,
+            'Authorization': `Bearer ${API_KEY}`,
         },
         body: formData,
     });

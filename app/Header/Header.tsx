@@ -1,5 +1,3 @@
-// Header.tsx
-'use client';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
@@ -137,8 +135,15 @@ const Header: React.FC = () => {
                 </nav>
             )}
 
-            <LoginForm isOpen={isLoginModalOpen} onClose={() => { setIsLoginModalOpen(false); handleLoginSuccess(); }} />
-            <RegisterForm isOpen={isRegisterModalOpen} onClose={() => setIsRegisterModalOpen(false)} />
+            <LoginForm
+                isOpen={isLoginModalOpen}
+                onClose={() => setIsLoginModalOpen(false)}
+                onLoginSuccess={handleLoginSuccess} // Pass the onLoginSuccess prop here
+            />
+            <RegisterForm
+                isOpen={isRegisterModalOpen}
+                onClose={() => setIsRegisterModalOpen(false)}
+            />
         </header>
     );
 };
