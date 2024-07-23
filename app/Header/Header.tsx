@@ -1,3 +1,4 @@
+// Header.tsx
 'use client';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -73,19 +74,23 @@ const Header: React.FC = () => {
                         <Link href="/about" className="text-black-600 hover:text-grey transition-colors">О нас</Link>
                         <Link href="/contact" className="text-black-600 hover:text-grey transition-colors">Контакты</Link>
                         {userEmail ? (
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="flex items-center">
-                                        {userEmail}
-                                        <ChevronDown className="ml-2 h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={handleLogout}>
-                                        Выйти
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                            <>
+                                <Link href="/profile" className="text-black hover:text-grey transition-colors">
+                                    {userEmail}
+                                </Link>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" className="flex items-center">
+                                            <ChevronDown className="ml-2 h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onClick={handleLogout}>
+                                            Выйти
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </>
                         ) : (
                             <>
                                 <Button onClick={() => setIsLoginModalOpen(true)}>Вход</Button>
@@ -110,11 +115,18 @@ const Header: React.FC = () => {
                         <li><Link href="/about" className="text-gray-600 hover:text-black transition-colors">О нас</Link></li>
                         <li><Link href="/contact" className="text-gray-600 hover:text-black transition-colors">Контакты</Link></li>
                         {userEmail ? (
-                            <li>
-                                <Button variant="ghost" className="text-gray-600 hover:text-black transition-colors" onClick={handleLogout}>
-                                    Выйти
-                                </Button>
-                            </li>
+                            <>
+                                <li>
+                                    <Link href="/profile" className="text-gray-600 hover:text-black transition-colors">
+                                        {userEmail}
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Button variant="ghost" className="text-gray-600 hover:text-black transition-colors" onClick={handleLogout}>
+                                        Выйти
+                                    </Button>
+                                </li>
+                            </>
                         ) : (
                             <>
                                 <li><Button onClick={() => setIsLoginModalOpen(true)}>Вход</Button></li>

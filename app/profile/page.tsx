@@ -1,5 +1,7 @@
+// ProfilePage.tsx
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -10,23 +12,59 @@ import { Textarea } from "@/components/ui/textarea"
 export default function ProfilePage() {
     const [isEditing, setIsEditing] = useState(false)
     const [profile, setProfile] = useState({
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        jobTitle: 'Software Engineer',
-        experience: '5 years',
-        bio: 'Passionate about building scalable web applications and solving complex problems.'
+        name: '',
+        email: '',
+        jobTitle: '',
+        experience: '',
+        bio: ''
     })
+
+    useEffect(() => {
+        const fetchProfile = async () => {
+            const token = localStorage.getItem("userToken")
+            if (token) {
+                try {
+                    const response = await axios.get("http://127.0.0.1:8002/users/me", {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    })
+                    setProfile({
+                        name: response.data.name,
+                        email: response.data.email,
+                        jobTitle: response.data.job_title,
+                        experience: response.data.experience,
+                        bio: response.data.bio || ''  // Adjust if 'bio' field is available
+                    })
+                } catch (error) {
+                    console.error("Error fetching profile:", error)
+                }
+            }
+        }
+        fetchProfile()
+    }, [])
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target
         setProfile(prev => ({ ...prev, [name]: value }))
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        // Here you would typically send the updated profile to your backend
-        console.log('Updated profile:', profile)
-        setIsEditing(false)
+        const token = localStorage.getItem("userToken")
+        if (token) {
+            try {
+                await axios.put("http://127.0.0.1:8002/users/me", profile, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                setIsEditing(false)
+            } catch (error) {
+                console.error("Error updating profile:", error)
+            }
+        }
     }
 
     return (
@@ -38,7 +76,7 @@ export default function ProfilePage() {
                             <AvatarImage src="/avatar-placeholder.png" alt="Profile picture" />
                             <AvatarFallback>JD</AvatarFallback>
                         </Avatar>
-                        <CardTitle>{profile.name}</CardTitle>
+                        <CardTitle>{profile.name || 'Profile'}</CardTitle>
                     </div>
                     <Button onClick={() => setIsEditing(!isEditing)}>
                         {isEditing ? 'Cancel' : 'Edit Profile'}

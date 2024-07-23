@@ -12,7 +12,8 @@ import ChatIcon from '@mui/icons-material/Chat';
 import CloseIcon from '@mui/icons-material/Close';
 import { MessageSquare, Code } from "lucide-react"
 import { Button as SButton} from "@/app/Landing/ui/button"
-import { transcribeAudio } from '../api/whisper';
+import { transcribeAudio } from '../whisper';
+import AuthModal from '../Auth/AuthModal';
 
 const BASE_LOCAL_URL = 'http://localhost:8002';
 const BASE_DEV_URL = 'http://localhost:8002';
@@ -42,10 +43,59 @@ function HeyGen() {
     const [isChatOpen, setIsChatOpen] = useState(false);
 
 
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [userToken, setJwtToken] = useState(null);
+
     const [isRecording, setIsRecording] = useState(false);
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
     const silenceTimeoutRef = useRef(null);
+
+    useEffect(() => {
+        const savedToken = localStorage.getItem('userToken');
+        if (savedToken) {
+            setJwtToken(savedToken);
+        }
+    }, []);
+
+
+    const handleGetFeedbackAndExit = async () => {
+        if (userToken) {
+            // Пользователь уже авторизован
+            await getFeedbackAndSave(userToken);
+            router.push('/'); // Перенаправляем на лендинг
+        } else {
+            // Открываем модальное окно авторизации
+            setIsAuthModalOpen(true);
+        }
+    };
+
+    const handleAuthSuccess = async (token) => {
+        setJwtToken(token);
+        localStorage.setItem('userToken', token);
+        setIsAuthModalOpen(false);
+        await getFeedbackAndSave(token);
+        router.push('/'); // Перенаправляем на лендинг после успешной авторизации и сохранения фидбэка
+    };
+
+
+    const getFeedbackAndSave = async (token) => {
+        try {
+            const response = await axios.post(`${BASE_DEV_URL}/end-session/`, {
+                session_id: data.sessionId
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const aiFeedback = response.data.feedback;
+            console.log('AI Feedback:', aiFeedback);
+        } catch (error) {
+            console.error('Error getting and saving feedback:', error);
+            // Обработка ошибок
+        }
+    };
 
 
 
@@ -234,7 +284,14 @@ function HeyGen() {
         };
     };
 
+    let isFetchingToken = false;
+
     async function fetchAccessToken() {
+        if (isFetchingToken) {
+            return ''; // Skip fetching if already in progress
+        }
+        isFetchingToken = true;
+
         try {
             const response = await fetch(`${BASE_LOCAL_URL}/get-access-token`, {
                 method: 'POST'
@@ -245,22 +302,40 @@ function HeyGen() {
         } catch (error) {
             console.error('Error fetching access token:', error);
             return '';
+        } finally {
+            isFetchingToken = false; // Reset flag after fetching
         }
     }
+
+    useEffect(() => {
+        async function fetchAndSetAccessToken() {
+            const token = await fetchAccessToken();
+            setAccessToken(token);
+            await startAvatarSession(token);
+        }
+
+        fetchAndSetAccessToken();
+    }, []);
 
     async function startAvatarSession(token) {
         if (data?.sessionId) {
             setDebug('Avatar session already started');
             return;
         }
-
         if (!token) {
             setDebug("Access token is not available");
             return;
         }
 
+        // Убедитесь, что предыдущая сессия закрыта
+        try {
+            await stopAvatarSession();
+        } catch (error) {
+            console.error('Error stopping previous session:', error);
+        }
+
         avatar.current = new StreamingAvatarApi(
-            new Configuration({ accessToken: token, jitterBuffer: 200 })
+            new Configuration({ accessToken: token, jitterBuffer: 150 }) // Reduced jitter buffer
         );
 
         if (!avatar.current) {
@@ -273,7 +348,7 @@ function HeyGen() {
         try {
             const startRequest: CreateStreamingAvatarRequest = {
                 newSessionRequest: {
-                    quality: NewSessionRequestQualityEnum.Low,
+                    quality: NewSessionRequestQualityEnum.Low, // Changed to Low quality
                     avatarName: predefinedAvatarId,
                     voice: { voiceId: predefinedVoiceId }
                 }
@@ -288,11 +363,13 @@ function HeyGen() {
             setDebug('Avatar session started');
         } catch (error) {
             if (error instanceof Error) {
-                setErrorMessage(
-                    error.message.includes('"code":10007')
-                        ? "Слишком много пользователей, попробуйте позже"
-                        : 'Произошла ошибка при запуске сессии аватара'
-                );
+                if (error.message.includes('"code":10007')) {
+                    setErrorMessage("Слишком много пользователей, попробуйте позже");
+                } else if (error.message.includes('"code":10005')) {
+                    setErrorMessage("Ошибка состояния сессии. Пожалуйста, начните новую сессию.");
+                } else {
+                    setErrorMessage('Произошла ошибка при запуске сессии аватара: ' + error.message);
+                }
                 setDebug('Error starting avatar session: ' + error.message);
             }
         } finally {
@@ -315,12 +392,16 @@ function HeyGen() {
                 return;
             }
             console.log('Speaking text:', text);
-            console.log('Session ID:',  );
+            console.log('Session ID:', sessionId);
             await avatar.current.speak({ taskRequest: { text: text, sessionId: sessionId } });
         } catch (error: any) {
             let errorMessage = 'Error speaking text: ';
             if (error.response && error.response.data && error.response.data.message) {
-                errorMessage += error.response.data.message;
+                if (error.response.data.message.includes('10005')) {
+                    errorMessage = 'Session state is wrong: closed. Please start a new session.';
+                } else {
+                    errorMessage += error.response.data.message;
+                }
             } else if (error.message) {
                 errorMessage += error.message;
             } else {
@@ -329,6 +410,7 @@ function HeyGen() {
             setDebug(errorMessage);
         }
     }
+
 
     async function endSession() {
         if (!data?.sessionId) {
@@ -351,7 +433,11 @@ function HeyGen() {
             ]);
         } catch (error) {
             console.error('Error ending session:', error);
-            setErrorMessage('Произошла ошибка при завершении сессии');
+            if (error.response && error.response.data && error.response.data.message.includes('10005')) {
+                setErrorMessage('Session state is wrong: closed. Please start a new session.');
+            } else {
+                setErrorMessage('Произошла ошибка при завершении сессии');
+            }
         } finally {
             setIsLoading(false);
             await stopAvatarSession();
@@ -360,6 +446,7 @@ function HeyGen() {
             router.push('/');
         }
     }
+
 
     useEffect(() => {
         async function init() {
@@ -377,7 +464,7 @@ function HeyGen() {
                         setDebug("Playing");
                         setTimeout(async () => {
                             if (!hasSpokenWelcomeMessage) {
-                                const welcomeMessage = "Здравствуйте! Я ваш виртуальный интервьюер. Я здесь, чтобы помочь вам пройти собеседование. Давайте начнем. Расскажите немного о себе.";
+                                const welcomeMessage = "Здравствуйте! Я ваш виртуальный интервьюер.Давайте начнем. Расскажите немного о себе.";
                                 await speakText(welcomeMessage, data.sessionId);
                                 setHasSpokenWelcomeMessage(true);
                             }
@@ -494,7 +581,7 @@ function HeyGen() {
     return (
         <div className="flex h-screen overflow-hidden">
             {/* Сайдбар для чата */}
-            <div className={`fixed top-0 left-0 m-6 h-full transition-all duration-300 ease-in-out bg-white shadow-sm border border-gray-300 ${isChatOpen ? 'w-80 sm:w-96 p-4 rounded-lg' : 'w-0 p-0'} overflow-hidden z-20`}>
+            <div className={`fixed top-0 left-0 m- h-full transition-all duration-300 ease-in-out bg-white shadow-lg border border-gray-300 ${isChatOpen ? 'w-80 sm:w-96 p-4 rounded-lg' : 'w-0 p-0'} overflow-hidden z-20`}>
                 <div className={`h-full flex flex-col ${isChatOpen ? 'opacity-100' : 'opacity-0'}`}>
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-xl font-bold">Чат с аватаром</h2>
@@ -620,6 +707,12 @@ function HeyGen() {
                 >
                     <Code className="h-4 w-4 text-black" />
                 </SButton>
+                <button onClick={handleGetFeedbackAndExit}>Получить фидбэк и Выйти</button>
+                <AuthModal
+                    isOpen={isAuthModalOpen}
+                    onClose={() => setIsAuthModalOpen(false)}
+                    onAuthSuccess={handleAuthSuccess}
+                />
             </div>
         </div>
     );
