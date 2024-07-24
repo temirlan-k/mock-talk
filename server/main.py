@@ -41,7 +41,6 @@ API_KEY_2 = 'ZDhmYzQxNDcxZTUxNGNiMzg4MmRkMTFhNDM2ZjVlMzktMTcyMTY2NjI4OQ=='
 API_KEY_3 = 'NWNhYjgxNDIzZjA1NDkzYjg2YTYxNmE1ZWZjMjM0NmYtMTcyMTY2NzgxMA=='
 API_KEY_4 = 'ZjYyYTA0ZjExNDcwNGZkMzkyODA5YzA5ZmI3Yzc1YzgtMTcyMTY3MTQ2MA=='
 API_KEY_5 = 'Zjk4ZjQwOWVkM2ExNDk5Y2FkMTU1NTI3MzA2NDgwMWEtMTcyMTY5NzI1OQ=='
-API_KEY_6 = ''
 
 API_KEYS = [
 
@@ -139,13 +138,14 @@ class LoginRequest(BaseModel):
 # Initialize JWTBearer
 jwt_bearer = JWTBearer()
 
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 # Initialize the OpenAI LLM model
 model = ChatOpenAI(
     model="gpt-4o",
     max_retries=2,
-    api_key=os.getenv("OPENAI_API_KEY"),
+    api_key=OPENAI_API_KEY,
     temperature=0.1,
-    
 )
 vectordb_memory_chain = RunnablePassthrough(
     llm=model,
@@ -287,6 +287,13 @@ def get_session_history(session_id: str) -> ChatMessageHistory:
         Вы - топовый Software Engenier ИИ-интервьюер на MockTalk.ai, для моделирования реальных сценариев собеседования.
         Все что вы будете делать на собеседовании должно строго относится к ТЕМЕ СОБЕСЕДОВАНИЯ И НЕ ВЫХОДИТЬ ЗА ЕГО ПРЕДЕЛЫ и БЫТЬ КАК МОЖНО КРАТКИМ, БЕЗ ЛИШНИХ СЛОВ ЧТОБЫ СОБЕСЕДОВАНИЕ БЫЛО ПРОДУКТИВНЫМ.
         САМОЕ ГЛАВНОЕ - ЗАДАВАЙ ВОПРОСЫ и ДАВАЙ ОТВЕТЫ БЕЗ ЛИШНИХ СЛОВ и БУДЬ КРАТКИМ, ТОЛЬКО ВСЕ ПО ТЕМЕ СОБЕСЕДОВАНИЯ.
+
+        испоу
+        {
+        "text":text",
+        "code":""
+        }
+
         """
         store[session_id].add_message(SystemMessage(content=system_prompt))
     return store[session_id]

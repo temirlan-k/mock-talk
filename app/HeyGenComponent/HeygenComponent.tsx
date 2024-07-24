@@ -2,15 +2,20 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Editor from "@monaco-editor/react";
 import { useRouter } from 'next/navigation';
+import TerminalIcon from '@mui/icons-material/Terminal';
 import { Configuration, StreamingAvatarApi, CreateStreamingAvatarRequest, NewSessionRequestQualityEnum, NewSessionData } from '@heygen/streaming-avatar';
 import { Button, IconButton } from '@mui/material';
 import { Mic as MicIcon, Pause as PauseIcon, Send as SendIcon, Stop as StopIcon, Refresh as RefreshIcon, Code as CodeIcon } from '@mui/icons-material';
 import axios from 'axios';
 import CloseIcon from '@mui/icons-material/Close';
 import { MessageSquare, Code } from "lucide-react"
-import { Button as SButton} from "@/app/Landing/ui/button"
+import { Button as SButton } from "@/app/Landing/ui/button"
 import { transcribeAudio } from '../whisper';
 import AuthModal from '../Auth/AuthModal';
+import ForumIcon from '@mui/icons-material/Forum';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import './style.css';
+
 
 const BASE_LOCAL_URL = 'http://localhost:8002';
 const BASE_DEV_URL = 'http://localhost:8002';
@@ -19,6 +24,7 @@ const predefinedAvatarId = "josh_lite3_20230714";
 const predefinedVoiceId = "077ab11b14f04ce0b49b5f6e5cc20979";
 
 function HeyGen() {
+    
     const [stream, setStream] = useState<MediaStream | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null); // Add this state if needed
     const [data, setData] = useState<{ sessionId?: string } | null>(null); // Update the type as needed
@@ -308,7 +314,15 @@ function HeyGen() {
         }
     }
 
+    useEffect(() => {
+        async function fetchAndSetAccessToken() {
+            const token = await fetchAccessToken();
+            setAccessToken(token);
+            await startAvatarSession(token);
+        }
 
+        fetchAndSetAccessToken();
+    }, []);
 
     useEffect(() => {
         async function init() {
@@ -316,70 +330,56 @@ function HeyGen() {
             avatar.current = new StreamingAvatarApi(
                 new Configuration({ accessToken: newToken, jitterBuffer: 200 })
             );
-            await startAvatarSession(newToken);
         };
         init();
     }, []);
 
-    async function startAvatarSession(token: string) {
-        if (data?.sessionId) {
-            setDebug('Avatar session already started');
-            return;
-        }
+
+    const startAvatarSession = async (token: string) => {
         if (!token) {
             setDebug("Access token is not available");
             return;
         }
 
-        // Убедитесь, что предыдущая сессия закрыта
         try {
             await stopAvatarSession();
-        } catch (error) {
-            console.error('Error stopping previous session:', error);
-        }
+            avatar.current = new StreamingAvatarApi(new Configuration({ accessToken: token, jitterBuffer: 150 }));
 
-        avatar.current = new StreamingAvatarApi(
-            new Configuration({ accessToken: token, jitterBuffer: 150 }) // Reduced jitter buffer
-        );
-
-        if (!avatar.current) {
-            setDebug('Avatar API is not initialized');
-            return;
-        }
-
-        setIsLoading(true);
-
-        try {
             const startRequest: CreateStreamingAvatarRequest = {
                 newSessionRequest: {
-                    quality: NewSessionRequestQualityEnum.Low, // Changed to Low quality
+                    quality: NewSessionRequestQualityEnum.Low,
                     avatarName: predefinedAvatarId,
                     voice: { voiceId: predefinedVoiceId }
                 }
             };
 
-            const res = await avatar.current.createStartAvatar(startRequest, (debug) => {
-                setDebug(debug);
-            });
-
+            const res = await avatar.current.createStartAvatar(startRequest, setDebug);
             setData(res);
             setStream(avatar.current.mediaStream);
-            setDebug('Avatar session started');
         } catch (error) {
-            if (error instanceof Error) {
-                if (error.message.includes('"code":10007')) {
-                    setErrorMessage("Слишком много пользователей, попробуйте позже");
-                } else if (error.message.includes('"code":10005')) {
-                    setErrorMessage("Ошибка состояния сессии. Пожалуйста, начните новую сессию.");
-                } else {
-                    setErrorMessage('Произошла ошибка при запуске сессии аватара: ' + error.message);
-                }
-                setDebug('Error starting avatar session: ' + error.message);
-            }
+            setErrorMessage('Error starting avatar session: ' + error.message);
+            setDebug('Error starting avatar session: ' + error?.message);
         } finally {
             setIsLoading(false);
         }
-    }
+    };
+
+
+
+
+
+    useEffect(() => {
+        async function initialize() {
+            const token = await fetchAccessToken();
+            setAccessToken(token);
+            await startAvatarSession(token);
+        }
+
+        initialize();
+    }, []);
+    
+    
+    
     async function stopAvatarSession() {
         if (!avatar.current || !data?.sessionId) {
             setDebug('Avatar API not initialized or session not started');
@@ -463,16 +463,6 @@ function HeyGen() {
     }
 
 
-    useEffect(() => {
-        async function init() {
-            if (accessToken) {
-                await startAvatarSession(accessToken);
-            }
-        }
-
-        init();
-    }, [accessToken]);
-
 
     useEffect(() => {
         if (stream && mediaStream.current && data?.sessionId) {
@@ -520,20 +510,7 @@ function HeyGen() {
         setIsCodeRunnerOpen(!isCodeRunnerOpen);
     };
 
-    // const stopRecording = () => {
-    //     setIsRecording(false);
-    //     if (recognitionRef.current) {
-    //         recognitionRef.current.stop();
-    //     }
-    // };
 
-    // const handleMicButtonClick = () => {
-    //     if (isRecording) {
-    //         stopRecording();
-    //     } else {
-    //         startRecording();
-    //     }
-    // };
 
     const handleSendClick = async () => {
         if (recognizedText.trim() === '') return;
@@ -561,7 +538,6 @@ function HeyGen() {
             "javascript": "18.15.0",
             "python": "3.10",
             "java": "15",
-            "csharp.net": "5.0.201",
         };
         return versions[language]
     };
@@ -608,15 +584,15 @@ function HeyGen() {
 
     return (
         <div className="flex h-screen overflow-hidden">
-            {/* Сайдбар для чата */}
-            <div className={`fixed top-0 left-0 m- h-full transition-all duration-300 ease-in-out bg-white shadow-lg border border-gray-300 ${isChatOpen ? 'w-80 sm:w-96 p-4 rounded-lg' : 'w-0 p-0'} overflow-hidden z-20`}>
-                <div className={`h-full flex flex-col ${isChatOpen ? 'opacity-100' : 'opacity-0'}`}>
+            {/* Chat Sidebar */}
+            <div className={`fixed top-0 left-0 h-full transition-all duration-300 ease-in-out bg-white shadow-lg border border-gray-300 ${isChatOpen ? 'w-80 sm:w-96 p-4 rounded-lg' : 'w-0 p-0'} overflow-hidden z-20`}>                <div className={`h-full flex flex-col ${isChatOpen ? 'opacity-100' : 'opacity-0'}`}>
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-xl font-bold">Чат с аватаром</h2>
-                        <IconButton color="primary" onClick={toggleChat}>
+                        <IconButton color="primary" onClick={toggleChat} style={{ color: 'black' }}>
                             <CloseIcon />
                         </IconButton>
                     </div>
+                    <hr className='pb-4' />
                     <div className="flex-grow overflow-y-auto">
                         {chatMessages.map((msg, index) => (
                             <div key={index} className={`mb-4 ${msg.sender === 'user' ? 'text-right' : 'text-left'}`}>
@@ -628,36 +604,49 @@ function HeyGen() {
                     </div>
                 </div>
             </div>
-        
-            {/* Основной контент */}
-            <div className="flex-1 transition-all duration-300 ease-in-out">
-                <div className="relative flex items-center justify-center h-full">
-                    <video
-                        ref={mediaStream}
-                        autoPlay
-                        playsInline
-                        className="absolute top-0 left-0 w-full h-full object-cover"
-                    />
 
-                    {/* Мини-панель управления */}
-                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 px-2 sm:px-4 w-full max-w-md">
-                        <div className="bg-white bg-opacity-90 flex justify-center items-center text-black text-xs sm:text-sm rounded-full shadow-lg p-2">
-                            <Button
-                                onClick={isRecording ? stopRecording : startRecording}
-                                variant="contained"
-                                color={isRecording ? "secondary" : "primary"}
-                            >
-                                {isRecording ? "Stop Recording" : "Start Recording"}
-                            </Button>
-                        </div>
+            {/* Main Content */}
+            <div className="flex-1 transition-all duration-300 ease-in-out relative">
+                <video
+                    ref={mediaStream}
+                    autoPlay
+                    playsInline
+                    className="absolute top-0 left-0 w-full h-full object-cover"
+                />
+
+                {/* Mini Control Panel */}
+                <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10">
+                    <div className="relative">
+                        <button
+                            onClick={isRecording ? stopRecording : startRecording}
+                            className={`
+            flex justify-center items-center rounded-full shadow-lg
+            w-16 h-16 sm:w-20 sm:h-20
+            transition-all duration-300 ease-in-out
+            ${isRecording
+                                    ? 'bg-red-500 hover:bg-red-600 scale-110'
+                                    : 'bg-black hover:bg-gray-800 scale-100'
+                                }
+            focus:outline-none focus:ring-4 focus:ring-blue-300
+        `}
+                        >
+                            {isRecording
+                                ? <StopIcon className="text-white" fontSize="large" />
+                                : <MicIcon className="text-white" fontSize="large" />
+                            }
+                        </button>
+                        {isRecording && (
+                            <span className="absolute -top-2 -right-2 flex h-4 w-4">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
+                            </span>
+                        )}
                     </div>
-
                 </div>
             </div>
 
-            {/* Сайдбар код раннера */}
-            <div className={`transition-all duration-300 ease-in-out bg-white shadow-lg ${isCodeRunnerOpen ? 'w-1/2' : 'w-0'} overflow-hidden flex-shrink-0`}>
-                <div className="p-4 h-full flex flex-col">
+            {/* Code Runner Sidebar */}
+            <div className={`hidden sm:block transition-all duration-300 ease-in-out bg-white shadow-lg ${isCodeRunnerOpen ? 'w-1/2' : 'w-0'} overflow-hidden flex-shrink-0 rounded-lg`}>                <div className="p-4 h-full flex flex-col rounded-lg">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-xl font-bold">Code Runner</h2>
                         <IconButton color="primary" onClick={toggleCodeRunner}>
@@ -668,15 +657,15 @@ function HeyGen() {
                         <select
                             value={language}
                             onChange={handleLanguageChange}
-                            className="w-full p-2 border rounded"
+                            className="w-full p-2 border border-gray-300 rounded-lg bg-white text-black-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
                         >
-                            <option value="js">JavaScript</option>
+                            <option  value="js">JavaScript</option>
                             <option value="python">Python</option>
                             <option value="java">Java</option>
                         </select>
                     </div>
-                    <div className="flex-grow flex flex-col">
-                        <div className="flex-1 mb-4">
+                    <div className="flex-grow flex flex-col rounded-lg">
+                        <div className="flex-1 mb-4 rounded-lg overflow-hidden">
                             <Editor
                                 height="100%"
                                 language={language}
@@ -689,61 +678,95 @@ function HeyGen() {
                                 }}
                             />
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 rounded-lg">
                             <h3 className="font-bold mb-2">Output:</h3>
                             <textarea
-                                className="w-full h-full p-2 border rounded bg-gray-100 font-mono text-sm"
+                                className="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 font-mono text-sm"
                                 value={codeOutput}
                                 readOnly
                             />
                         </div>
                     </div>
                     <div className="mt-4 flex space-x-2">
-                        <button
-                            className={`bg-blue-500 text-black px-4 py-2 rounded flex-grow ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        <SButton
+                            className={`bg-black text-white px-4 py-2 rounded-lg flex-grow shadow-md hover:bg-gray-800 transition duration-300 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                             onClick={runCode}
                             disabled={isLoading}
                         >
-                            {isLoading ? 'Running...' : 'Run Code'}
-                        </button>
-                        <button
-                            className={`bg-green-500 text-white px-4 py-2 rounded flex-grow ${!codeOutput ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            {isLoading ? (
+                                <div className="flex items-center space-x-2">
+                                    <LoadingSpinner className="w-4 h-4 text-white" />
+                                    <span>Running...</span>
+                                </div>
+                            ) : (
+                                'Run Code'
+                            )}
+                        </SButton>
+                        <SButton
+                            className={`bg-gray-300 text-black px-4 py-2 rounded-lg flex-grow shadow-md hover:bg-gray-200 transition duration-300 ${!codeOutput ? 'opacity-50 cursor-not-allowed border-gray-300' : ''}`}
                             onClick={sendCodeToChat}
                             disabled={!codeOutput}
                         >
-                            Send to Chat
-                        </button>
+                            Send to AI Interviewer
+                        </SButton>
                     </div>
                 </div>
             </div>
 
-            {/* Кнопка для открытия/закрытия сайдбаров */}
-            <div className="fixed top-4 right-4 z-30 flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
+            {/* Buttons for toggling sidebars - repositioned for better accessibility */}
+            <div className="fixed z-30 flex flex-col space-y-2 bottom-4 right-4 sm:flex-row sm:space-x-2 sm:space-y-0 sm:top-4 sm:right-4">
                 <SButton
                     variant="outline"
-                    size="icon"
                     onClick={toggleChat}
-                    className="bg-white hover:bg-gray-100"
+                    className="bg-white hover:bg-gray-100 w-12 h-12 flex items-center justify-center rounded-full"
                 >
-                    <MessageSquare className="h-4 w-4 text-black" />
+                    <ForumIcon className="w-6 h-6" />
                 </SButton>
                 <SButton
                     variant="outline"
-                    size="icon"
                     onClick={toggleCodeRunner}
-                    className="hidden md:flex bg-white hover:bg-gray-100"
+                    className="bg-white hover:bg-gray-100 w-12 h-12 flex items-center justify-center rounded-full hidden sm:flex"
                 >
-                    <Code className="h-4 w-4 text-black" />
+                    <TerminalIcon className="w-6 h-6" />
                 </SButton>
-                <button onClick={handleGetFeedbackAndExit}>Получить фидбэк и Выйти</button>
-                <AuthModal
-                    isOpen={isAuthModalOpen}
-                    onClose={() => setIsAuthModalOpen(false)}
-                    onAuthSuccess={handleAuthSuccess} // Now matches the expected type
-                />
+                <SButton
+                    onClick={handleGetFeedbackAndExit}
+                    className="bg-black text-white hover:bg-gray-800 w-12 h-12 flex items-center justify-center rounded-full"
+                    variant="destructive"
+                >
+                    <ExitToAppIcon className="w-6 h-6" />
+                </SButton>
             </div>
+
+            <AuthModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+                onAuthSuccess={handleAuthSuccess}
+            />
         </div>
+
+
     );
-}
+
+};
+
 
 export default HeyGen;
+
+
+export const LoadingSpinner = ({ className }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+    >
+        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+    </svg>
+);

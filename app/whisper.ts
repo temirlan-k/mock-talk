@@ -2,11 +2,10 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-const API_KEY = process.env.OPENAI_API_KEY
 
+const API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
 
 export async function transcribeAudio(audioBlob: Blob): Promise<string> {
-    console.log('API Key:', API_KEY);
 
     const formData = new FormData();
     formData.append('file', audioBlob, 'audio.webm');

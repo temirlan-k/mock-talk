@@ -1,0 +1,23 @@
+.icon-black {
+    color: black;
+}
+
+.bg-white {
+    background-color: white;
+}
+
+/* Стили для пульсации */
+.animate-ping-slow,
+.animate-ping-slower {
+    animation: ping 2s ease-in-out infinite;
+}
+
+@keyframes ping {
+    from {
+        transform: scale(1);
+    }
+
+    to {
+        transform: scale(1.2);
+    }
+}

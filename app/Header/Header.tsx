@@ -68,9 +68,6 @@ const Header: React.FC = () => {
                     </Link>
 
                     <nav className="hidden md:flex items-center space-x-6">
-                        <Link href="/" className="text-black hover:text-grey transition-colors">Главная</Link>
-                        <Link href="/about" className="text-black-600 hover:text-grey transition-colors">О нас</Link>
-                        <Link href="/contact" className="text-black-600 hover:text-grey transition-colors">Контакты</Link>
                         {userEmail ? (
                             <>
                                 <Link href="/profile" className="text-black hover:text-grey transition-colors">
@@ -109,9 +106,6 @@ const Header: React.FC = () => {
             {isMenuOpen && (
                 <nav className="md:hidden">
                     <ul className="flex flex-col items-center space-y-4 py-4">
-                        <li><Link href="/" className="text-gray-600 hover:text-black transition-colors">Главная</Link></li>
-                        <li><Link href="/about" className="text-gray-600 hover:text-black transition-colors">О нас</Link></li>
-                        <li><Link href="/contact" className="text-gray-600 hover:text-black transition-colors">Контакты</Link></li>
                         {userEmail ? (
                             <>
                                 <li>
