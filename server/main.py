@@ -41,14 +41,36 @@ API_KEY_2 = 'ZDhmYzQxNDcxZTUxNGNiMzg4MmRkMTFhNDM2ZjVlMzktMTcyMTY2NjI4OQ=='
 API_KEY_3 = 'NWNhYjgxNDIzZjA1NDkzYjg2YTYxNmE1ZWZjMjM0NmYtMTcyMTY2NzgxMA=='
 API_KEY_4 = 'ZjYyYTA0ZjExNDcwNGZkMzkyODA5YzA5ZmI3Yzc1YzgtMTcyMTY3MTQ2MA=='
 API_KEY_5 = 'Zjk4ZjQwOWVkM2ExNDk5Y2FkMTU1NTI3MzA2NDgwMWEtMTcyMTY5NzI1OQ=='
+API_KEY_6 = 'ZDRiN2QwYTRkM2U0NDEzNmIzY2U1MThhOGZhZjQ0MTYtMTcyMTk4MzU5OQ=='
+API_KEY_7 = 'M2U5NTI1NWM3NzZlNDA3MGI4NjY0YzcxYmVkZTM1OWYtMTcyMTk4NDAxMw=='
+API_KEY_8 = 'NzdlOTljYWI0ZjgyNGEwNDk5NzJkZWZlM2QwNTM1YTgtMTcyMTk4NDIyNA=='
+API_KEY_9 = 'MDRkNjJjNTM1NmNiNGEwNDlkZWEwOWZkYTA1NTRkMTYtMTcyMTk4NDQxNg=='
+API_KEY_10 = 'MWQ3M2ZjZGFkNDliNDZmYTg4Mzk1ODVjMzRjODNkOTAtMTcyMTk4NDY2NQ=='
+API_KEY_11 = 'ZjY2ZjQwZjYxNzQwNGYzYjg2YjYxNzYwZjQwZjYxNzQtMTcyMTk4NDc4Mw=='
+API_KEY_12 = "N2FhNzRkZjVhZGI2NDM5ZTk5MDhkYTBiNGQ5OWI2NmUtMTcyMTk4NjM1NQ=="
+API_KEY_13 = "ZjM3ZTdjZWRkMDE0NGUzMTkxNDgyMmM5YjNhYzhhNDEtMTcyMTk4NjI5Ng=="
+API_KEY_14 = "MTJlOTAyMGFjYWZkNDdlNjg2M2JkYmE1ZGMwZTMzM2YtMTcyMTk4NTk2MQ=="
+API_KEY_15 = "ZGYzMjc1ZTE5MjQ4NDE1ZmI2NDU4ZjhiYTcxNmNhMGYtMTcyMTk4NjE5OA=="
+
+
 
 API_KEYS = [
 
     API_KEY_1,
     API_KEY_2,
     API_KEY_3,
-    API_KEY_4
-    
+    API_KEY_4,
+    API_KEY_5,
+    API_KEY_6,
+    API_KEY_7,
+    API_KEY_8,
+    API_KEY_9,
+    API_KEY_10,
+    API_KEY_11,
+    API_KEY_12,
+    API_KEY_13,
+    API_KEY_14,
+    API_KEY_15
 
 ]
 
@@ -75,7 +97,8 @@ retriever = vectorstore.as_retriever()
 vectorstore_retriever_memory = VectorStoreRetrieverMemory(retriever=retriever)
 
 # MongoDB client
-client = AsyncIOMotorClient("mongodb://localhost:27017")
+url = 'mongodb+srv://admin:yBizVWOI2v1couIy@cluster0.djbpz07.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
+client = AsyncIOMotorClient(url)
 db = client.mocktalk
 sessions_collection = db.sessions
 users_collection = db.users
@@ -138,14 +161,13 @@ class LoginRequest(BaseModel):
 # Initialize JWTBearer
 jwt_bearer = JWTBearer()
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Initialize the OpenAI LLM model
 model = ChatOpenAI(
     model="gpt-4o",
     max_retries=2,
-    api_key=OPENAI_API_KEY,
-    temperature=0.1,
+    api_key=os.getenv("OPENAI_API_KEY"),
+    temperature=0.7,
 )
 vectordb_memory_chain = RunnablePassthrough(
     llm=model,
@@ -280,34 +302,33 @@ async def login_for_access_token(login_data: LoginRequest):
 
 store = {}
 
-def get_session_history(session_id: str) -> ChatMessageHistory:
+def get_session_history(session_id: str, position:str = None ,grade:str=None) -> ChatMessageHistory:
     if session_id not in store:
         store[session_id] = ChatMessageHistory()
-        system_prompt = """
-        Вы - топовый Software Engenier ИИ-интервьюер на MockTalk.ai, для моделирования реальных сценариев собеседования.
-        Все что вы будете делать на собеседовании должно строго относится к ТЕМЕ СОБЕСЕДОВАНИЯ И НЕ ВЫХОДИТЬ ЗА ЕГО ПРЕДЕЛЫ и БЫТЬ КАК МОЖНО КРАТКИМ, БЕЗ ЛИШНИХ СЛОВ ЧТОБЫ СОБЕСЕДОВАНИЕ БЫЛО ПРОДУКТИВНЫМ.
-        САМОЕ ГЛАВНОЕ - ЗАДАВАЙ ВОПРОСЫ и ДАВАЙ ОТВЕТЫ БЕЗ ЛИШНИХ СЛОВ и БУДЬ КРАТКИМ, ТОЛЬКО ВСЕ ПО ТЕМЕ СОБЕСЕДОВАНИЯ.
+        system_prompt = f"""
+        <<ТВОИ ОТВЕТЫ НЕ ДОЛЖНЫ ПРЕВЫШАТЬ ЛИМИТ В 200 СИМВОЛОВ!!!>> - ОЧЕНЬ ВАЖНО
 
-        испоу
-        {
-        "text":text",
-        "code":""
-        }
-
+        Вы - топовый Software Engineer ИИ-интервьюер на MockTalk.ai, моделирующий реальные сценарии собеседований для различных позиций (Backend, Frontend, FullStack, Android dev, IOS dev, DS, ML, Data Engineer, Data Analytics и т.д.), а также для различных грейдов (INTERN, JUNIOR, MIDDLE, SENIOR).
+        Все, что вы делаете на собеседовании, должно строго относиться к теме собеседования и не выходить за его пределы. 
+        Будьте максимально краткими, без лишних слов, чтобы собеседование было продуктивным. 
+        САМОЕ ГЛАВНОЕ - задавайте вопросы и давайте ответы без лишних слов и будьте краткими, только по теме собеседования.
+        ЗАДАВАЙТЕ ВОПРОСЫ ПОСЛЕДОВАТЕЛЬНО, ПО ОДНОМУ, чтобы пользователю было удобно отвечать.
+        Когда пользователь просит объяснить какую-то тему или технологию, объясняйте кратко, просто и понятно.
+        Проведите собеседование для кандидата на позицию {position} на грейд {grade}. 
+        Задавайте сложные вопросы, требующие глубокого понимания и знаний конкретных технологий или специализаций. 
+        Избегайте обычных вопросов, фокусируйтесь на более трудных задачах, которые редко задают на реальных собеседованиях.
+        Ответы не должны превышать 3-4 предложений/200 символов.
+        <<ТВОИ ОТВЕТЫ НЕ ДОЛЖНЫ ПРЕВЫШАТЬ ЛИМИТ В 200 СИМВОЛОВ!!!>> - ОЧЕНЬ ВАЖНО
+        
+        Пример краткого объяснения:
+        Пользователь: "Можете объяснить, как работает каппа-архитектура?"
+        ИИ: "Каппа-архитектура предназначена для обработки данных в реальном времени, использует единую потоковую платформу для приема и обработки данных. Это позволяет избежать сложности двух отдельных систем для батчевой и потоковой обработки."
+        <<ТВОИ ОТВЕТЫ НЕ ДОЛЖНЫ ПРЕВЫШАТЬ ЛИМИТ В 200 СИМВОЛОВ!!!>> - ОЧЕНЬ ВАЖНО
         """
+
         store[session_id].add_message(SystemMessage(content=system_prompt))
     return store[session_id]
 
-def get_session_messages(session_id: str) -> List[dict]:
-    history = store.get(session_id)
-    if not history:
-        return []
-    messages = [
-        {"role": "system", "content": msg.content} if isinstance(msg, SystemMessage) else {"role": "user", "content": msg.content} 
-        for msg in history.messages
-    ]
-    print(messages)
-    return messages
 
 with_message_history = RunnableWithMessageHistory(model, get_session_history)
 
@@ -319,7 +340,9 @@ class InterviewSetting(BaseModel):
 
 class MessageRequest(BaseModel):
     session_id: str
-    message: str
+    message: Optional[str] = None
+    position:Optional[str] = None
+    grade:Optional[str] = None
     type:Optional[str] = None
 
 @app.post('/get-access-token')
@@ -347,10 +370,13 @@ async def chat_with_history(request: MessageRequest):
     try:
         session_id = request.session_id
         user_message = request.message
+        position = request.position
+        grade = request.grade
         type = request.type
         final_message = "Вот мой код для вопроса по кодингу, проверь соответсует ли решение твоему вопросу :  " + user_message if type == "code" else user_message
-        session_history = get_session_history(session_id)
+        session_history =  get_session_history(session_id,position,grade)
         session_history.add_message(HumanMessage(content=final_message))
+
 
         config = {"configurable": {"session_id": session_id}}
         response = with_message_history.invoke(
@@ -376,26 +402,6 @@ async def start_session():
     get_session_history(session_id)
     return {"session_id": session_id}
 
-@app.post("/upload-resume/")
-async def upload_resume(file: UploadFile = File(...), session_id: str = ""):
-    try:
-        text = await extract_text_from_pdf(file)
-
-        session_history = get_session_history(session_id)
-        session_history.add_message(HumanMessage(content=f"Resume content: {text}"))
-
-        user_message = "Проанализируйте резюме и составьте на его основе очень короткие 5 вопросов для собеседования. Коротко"
-        config = {"configurable": {"session_id": session_id}}
-        response = with_message_history.invoke(
-            [HumanMessage(content=user_message)],
-            config=config,
-        )
-
- 
-        return {"response": response.content}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing file: {e}")
-
 class FeedbackRequest(BaseModel):
     session_id: str
 
@@ -405,30 +411,50 @@ async def end_session_and_save_feedback(request: FeedbackRequest, token: dict = 
     user_id = decoded_token.get("_id")
     session_id = request.session_id
     feedback_prompt = (
-        f"Дай фидбэк по пройденному пользователем интервью, вот вся история интервью - {get_session_messages(session_id)}. "
-        "Оцени его по следующим критериям: "
-        "Софт Скиллы, Хард Скиллы (опиши какие темы он знает хорошо, какие плохо, и дай рекомендации/материалы как улучшить слабые скиллы), "
-        "и напиши на какой грейд (Джун, Мидл, Сеньор) он проходит. "
-        "Сгенерируй фидбэк в формате JSON. Вот пример желаемого формата JSON: "
-        '{"soft_skill": "soft_skills_feedback_text", "hard_skill": "hard_skills_feedback_text", "approximately_grade": "grade", "recommendations": "useful_recommendations_and_materials"}'
+        f"Дай строгий фидбэк по пройденному пользователем интервью. "
+        f"Вот вся история интервью:\n\n\n"
+        "Оцени его по следующим критериям:\n"
+        "1. Софт Скиллы (коммуникация, командная работа, адаптивность и т.д.).\n"
+        "   - Оцениваешь строго, обрати внимание на конкретность и уместность высказываний.\n"
+        "2. Хард Скиллы (укажите конкретные темы, которые он знает хорошо и те, которые требуют улучшения).\n"
+        "   - Строго проверяешь ответы на правильность и конкретность. Выявляй ошибки и недочеты.\n"
+        "3. Рекомендации (предложите материалы или шаги для улучшения слабых навыков).\n"
+        "   - Дай конкретные рекомендации, как улучшить слабые стороны.\n"
+        "Пример строгого фидбэка: 'Кандидат продемонстрировал недостаточную точность в объяснении алгоритмов. "
+        "Некоторые ответы содержали избыточную информацию, не относящуюся к теме. Рекомендуем изучить книги XYZ и курсы ABC.'"        
     )
-    chat_history = get_session_history(session_id)
-    ai_feedback = await with_message_history.invoke(
-        [SystemMessage(content=feedback_prompt)]
-        [HumanMessage(content=chat_history)],
-        {"configurable": {"session_id": session_id}}
-    )
-
+    chat_history =  get_session_history(session_id)
+    history = chat_history.messages[0].content
+    messages = [
+        SystemMessage(content=feedback_prompt),
+        HumanMessage(content=history)
+    ]
+    ai_feedback = model.invoke(messages)
+    
     session_data = {
+        "_id": str(ObjectId()),
         "session_id": session_id,
         "user_id": user_id,
-        "feedback": ai_feedback,
+        "feedback": ai_feedback.content,
         "timestamp": time.time()
     }
     await sessions_collection.insert_one(session_data)
 
-    return {"feedback": ai_feedback}
+    return ai_feedback.content  
 
+@app.get("/feedbacks/")
+async def get_feedbacks(token: dict = Depends(jwt_bearer)):
+    decoded_token = decode_jwt(token)
+    user = await users_collection.find_one({"_id": decoded_token.get("_id")})
+    feedbacks = await sessions_collection.find({'user_id': user.get('_id')}).to_list(length=100)
+
+    return [
+        {
+            '_id': str(i.get("_id")),
+            'feedback': i.get('feedback'),
+            'timestamp': i.get('timestamp', '')
+        } for i in feedbacks
+    ]
 
 if __name__ == "__main__":
     import uvicorn

@@ -71,7 +71,8 @@ const Header: React.FC = () => {
                         {userEmail ? (
                             <>
                                 <Link href="/profile" className="text-black hover:text-grey transition-colors">
-                                    {userEmail}
+                                    
+                                    <Button>{userEmail}</Button>
                                 </Link>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>

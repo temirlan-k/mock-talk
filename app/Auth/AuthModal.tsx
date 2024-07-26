@@ -68,7 +68,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
             localStorage.setItem("userToken", token);
             toast({ title: "Успешный вход", description: "Добро пожаловать!" });
             onClose();
-            onAuthSuccess(token); // Pass the token here
+            onAuthSuccess(token); 
             router.push('/talk');
         } catch (error: any) {
             if (error.response && error.response.status === 401) {

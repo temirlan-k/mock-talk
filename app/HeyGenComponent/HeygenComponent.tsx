@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
-import Editor from "@monaco-editor/react";
+import Editor, { loader } from "@monaco-editor/react";
 import { useRouter } from 'next/navigation';
 import TerminalIcon from '@mui/icons-material/Terminal';
 import { Configuration, StreamingAvatarApi, CreateStreamingAvatarRequest, NewSessionRequestQualityEnum, NewSessionData } from '@heygen/streaming-avatar';
@@ -16,15 +16,14 @@ import ForumIcon from '@mui/icons-material/Forum';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import './style.css';
 
-
 const BASE_LOCAL_URL = 'http://localhost:8002';
 const BASE_DEV_URL = 'http://localhost:8002';
 
 const predefinedAvatarId = "josh_lite3_20230714";
 const predefinedVoiceId = "077ab11b14f04ce0b49b5f6e5cc20979";
 
+
 function HeyGen() {
-    
     const [stream, setStream] = useState<MediaStream | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null); // Add this state if needed
     const [data, setData] = useState<{ sessionId?: string } | null>(null); // Update the type as needed
@@ -51,7 +50,7 @@ function HeyGen() {
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-    const [userToken, setJwtToken] = useState<string|null>(null);
+    const [userToken, setJwtToken] = useState<string | null>(null);
 
     const audioChunksRef = useRef<Blob[]>([]);
 
@@ -62,23 +61,30 @@ function HeyGen() {
         }
     }, []);
 
+
     const handleGetFeedbackAndExit = async () => {
         if (userToken) {
-            // Пользователь уже авторизован
-            await getFeedbackAndSave(userToken);
-            router.push('/'); // Перенаправляем на лендинг
+            setIsLoading(true); // Устанавливаем состояние загрузки
+
+            try {
+                await getFeedbackAndSave(userToken);
+                router.push('/'); // Перенаправляем на лендинг
+            } catch (error) {
+                console.error('Error getting feedback and saving:', error);
+            } finally {
+                setIsLoading(false); // Сбрасываем состояние загрузки после завершения
+            }
         } else {
-            // Открываем модальное окно авторизации
             setIsAuthModalOpen(true);
         }
     };
 
-    const handleAuthSuccess = async (token:string) => {
+    const handleAuthSuccess = async (token: string) => {
         setJwtToken(token);
         localStorage.setItem('userToken', token);
         setIsAuthModalOpen(false);
         await getFeedbackAndSave(token);
-        router.push('/'); 
+        router.push('/');
     };
 
 
@@ -191,13 +197,21 @@ function HeyGen() {
         }
     };
 
-    const handleSendMessage = async (message: string) => {
+    const handleSendMessage = async (message:string) => {
         if (message.trim() === '') return;
+
+        const position = localStorage.getItem('position');
+        const grade = localStorage.getItem('grade');
 
         setChatMessages((prevMessages) => [...prevMessages, { sender: 'user', message }]);
 
         try {
-            const response = await axios.post(`${BASE_DEV_URL}/chat`, { message, session_id: data?.sessionId });
+            const response = await axios.post(`${BASE_DEV_URL}/chat`, {
+                message,
+                session_id: data?.sessionId,
+                position,
+                grade
+            });
             const aiResponse = response.data.response;
             setChatMessages((prevMessages) => [...prevMessages, { sender: 'ai', message: aiResponse }]);
             if (data?.sessionId) {
@@ -220,7 +234,7 @@ function HeyGen() {
     const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setLanguage(event.target.value);
     };
-    
+
 
     const sendCodeToChat = async () => {
         try {
@@ -328,7 +342,7 @@ function HeyGen() {
         async function init() {
             const newToken = await fetchAccessToken();
             avatar.current = new StreamingAvatarApi(
-                new Configuration({ accessToken: newToken, jitterBuffer: 200 })
+                new Configuration({ accessToken: newToken, jitterBuffer: 150 })
             );
         };
         init();
@@ -356,7 +370,7 @@ function HeyGen() {
             const res = await avatar.current.createStartAvatar(startRequest, setDebug);
             setData(res);
             setStream(avatar.current.mediaStream);
-        } catch (error) {
+        } catch (error:any) {
             setErrorMessage('Error starting avatar session: ' + error.message);
             setDebug('Error starting avatar session: ' + error?.message);
         } finally {
@@ -377,9 +391,9 @@ function HeyGen() {
 
         initialize();
     }, []);
-    
-    
-    
+
+
+
     async function stopAvatarSession() {
         if (!avatar.current || !data?.sessionId) {
             setDebug('Avatar API not initialized or session not started');
@@ -391,7 +405,7 @@ function HeyGen() {
     }
 
 
-    async function speakText(text: string, sessionId: string | undefined ) {
+    async function speakText(text: string, sessionId: string | undefined) {
         try {
             if (!sessionId) {
                 throw new Error("Session ID is required");
@@ -421,8 +435,17 @@ function HeyGen() {
         }
     }
 
+    interface FeedbackResponse {
+        feedback: string;
+    }
 
-    async function endSession() {
+    interface SessionData {
+        sessionId: string;
+    }
+
+    
+
+    async function endSession(data: SessionData | null, setDebug: (message: string) => void, setIsLoading: (isLoading: boolean) => void, setChatMessages: React.Dispatch<React.SetStateAction<any[]>>, setErrorMessage: (message: string) => void, router: any) {
         if (!data?.sessionId) {
             setDebug('No session to end');
             return;
@@ -431,9 +454,18 @@ function HeyGen() {
         setIsLoading(true);
 
         try {
-            const response = await axios.post(`${BASE_DEV_URL}/end-session/`, {
-                session_id: data.sessionId,
-                user_id: "66998738a7bffcf6ca20814b"
+            const token = localStorage.getItem("userToken");
+            if (!token) {
+                throw new Error("No authorization token found");
+            }
+
+            const response = await axios.post<FeedbackResponse>(`${BASE_DEV_URL}/end-session/`, {
+                session_id: data.sessionId
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
             });
 
             const feedback = response.data.feedback;
@@ -441,11 +473,12 @@ function HeyGen() {
                 ...prevMessages,
                 { sender: 'system', message: `Feedback: ${feedback}` }
             ]);
+
+
         } catch (error) {
             console.error('Error ending session:', error);
-
             if (axios.isAxiosError(error)) {
-                if (error.response && error.response.data && error.response.data.message.includes('10005')) {
+                if (error.response?.data?.message?.includes('10005')) {
                     setErrorMessage('Session state is wrong: closed. Please start a new session.');
                 } else {
                     setErrorMessage('Произошла ошибка при завершении сессии');
@@ -455,13 +488,12 @@ function HeyGen() {
             }
         } finally {
             setIsLoading(false);
-            await stopAvatarSession();
+            await stopAvatarSession(); // Предполагается, что эта функция существует
             setChatMessages([]);
-            setRecognizedText('');
+            setRecognizedText(''); // Предполагается, что эта функция существует
             router.push('/');
         }
     }
-
 
 
     useEffect(() => {
@@ -522,7 +554,7 @@ function HeyGen() {
         }
 
         try {
-            const response = await axios.post(`${BASE_DEV_URL}/chat`, { message: recognizedText, session_id : data?.sessionId });
+            const response = await axios.post(`${BASE_DEV_URL}/chat`, { message: recognizedText, session_id: data?.sessionId });
             const aiResponse = response.data.response;
             setChatMessages(prevMessages => [...prevMessages, { sender: 'ai', message: aiResponse }]);
             if (data?.sessionId) {
@@ -538,8 +570,23 @@ function HeyGen() {
             "javascript": "18.15.0",
             "python": "3.10",
             "java": "15",
+            "ruby": "3.0.1",
+            "php": "8.2.3",
+            "go": "1.16.2",
+            "swift": "5.3.3",
+            "sqlite3": "3.36.0",
+            "powershell": "7.1.4"
+
         };
         return versions[language]
+    };
+
+    const handleLoadedData = () => {
+        setIsLoading(false);
+    };
+
+    const handleLoadStart = () => {
+        setIsLoading(true);
     };
 
     const runCode = async () => {
@@ -564,55 +611,54 @@ function HeyGen() {
         }
     };
 
-    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            console.log("File selected:", file.name);
-        }
-    };
 
-    const handleEndSession = async () => {
-        await endSession();
-    };
 
     const toggleChat = () => {
         setIsChatOpen(!isChatOpen);
     };
-    
-    
+
+
 
 
     return (
         <div className="flex h-screen overflow-hidden">
             {/* Chat Sidebar */}
             <div className={`fixed top-0 left-0 h-full transition-all duration-300 ease-in-out bg-white shadow-lg border border-gray-300 ${isChatOpen ? 'w-80 sm:w-96 p-4 rounded-lg' : 'w-0 p-0'} overflow-hidden z-20`}>                <div className={`h-full flex flex-col ${isChatOpen ? 'opacity-100' : 'opacity-0'}`}>
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-bold">Чат с аватаром</h2>
-                        <IconButton color="primary" onClick={toggleChat} style={{ color: 'black' }}>
-                            <CloseIcon />
-                        </IconButton>
-                    </div>
-                    <hr className='pb-4' />
-                    <div className="flex-grow overflow-y-auto">
-                        {chatMessages.map((msg, index) => (
-                            <div key={index} className={`mb-4 ${msg.sender === 'user' ? 'text-right' : 'text-left'}`}>
-                                <div className={`inline-block p-2 rounded-lg ${msg.sender === 'user' ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                                    <p className="text-sm">{msg.message}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold">Чат с аватаром</h2>
+                    <IconButton color="primary" onClick={toggleChat} style={{ color: 'black' }}>
+                        <CloseIcon />
+                    </IconButton>
                 </div>
+                <hr className='pb-4' />
+                <div className="flex-grow overflow-y-auto">
+                    {chatMessages.map((msg, index) => (
+                        <div key={index} className={`mb-4 ${msg.sender === 'user' ? 'text-right' : 'text-left'}`}>
+                            <div className={`inline-block p-2 rounded-lg ${msg.sender === 'user' ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                                <p className="text-sm">{msg.message}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
             </div>
 
             {/* Main Content */}
             <div className="flex-1 transition-all duration-300 ease-in-out relative">
+                {isLoading && (
+                    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center z-20">
+                        <AnimatedSpinner  />
+                    </div>
+                )}
                 <video
                     ref={mediaStream}
                     autoPlay
                     playsInline
+                    onLoadedData={handleLoadedData}
+                    onLoadStart={handleLoadStart}
                     className="absolute top-0 left-0 w-full h-full object-cover"
                 />
+
 
                 {/* Mini Control Panel */}
                 <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10">
@@ -647,103 +693,118 @@ function HeyGen() {
 
             {/* Code Runner Sidebar */}
             <div className={`hidden sm:block transition-all duration-300 ease-in-out bg-white shadow-lg ${isCodeRunnerOpen ? 'w-1/2' : 'w-0'} overflow-hidden flex-shrink-0 rounded-lg`}>                <div className="p-4 h-full flex flex-col rounded-lg">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-xl font-bold">Code Runner</h2>
-                        <IconButton color="primary" onClick={toggleCodeRunner}>
-                            <CodeIcon />
-                        </IconButton>
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold">Code Runner</h2>
+                    <IconButton color="primary" onClick={toggleCodeRunner}>
+                        <CodeIcon />
+                    </IconButton>
+                </div>
+                <div className="mb-4">
+                    <select
+                        value={language}
+                        onChange={handleLanguageChange}
+                        className="w-full p-2 border border-gray-300 rounded-lg bg-white text-black-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+                    >
+                        <option value="javascript">JavaScript</option>
+                        <option value="python">Python</option>
+                        <option value="java">Java</option>
+                        <option value="go">Go</option>
+                        <option value="ruby">Ruby</option>
+                        <option value="php">PHP</option>
+                        <option value="swift">Swift</option>
+                        <option value="sqlite3">SQLite3</option>
+                        <option value="powershell">PowerShell</option>
+                    </select>
+                </div>
+                <div className="flex-grow flex flex-col rounded-lg">
+                    <div className="flex-1 mb-4 rounded-lg overflow-hidden">
+                        <Editor
+                            height="100%"
+                            language={language}
+                            value={code}
+                            onChange={handleEditorChange}
+                            theme="vs-dark"
+                            options={{
+                                minimap: { enabled: false },
+                                fontSize: 14,
+                            }}
+                        />
                     </div>
-                    <div className="mb-4">
-                        <select
-                            value={language}
-                            onChange={handleLanguageChange}
-                            className="w-full p-2 border border-gray-300 rounded-lg bg-white text-black-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
-                        >
-                            <option  value="js">JavaScript</option>
-                            <option value="python">Python</option>
-                            <option value="java">Java</option>
-                        </select>
-                    </div>
-                    <div className="flex-grow flex flex-col rounded-lg">
-                        <div className="flex-1 mb-4 rounded-lg overflow-hidden">
-                            <Editor
-                                height="100%"
-                                language={language}
-                                value={code}
-                                onChange={handleEditorChange}
-                                theme="vs-dark"
-                                options={{
-                                    minimap: { enabled: false },
-                                    fontSize: 14,
-                                }}
-                            />
-                        </div>
-                        <div className="flex-1 rounded-lg">
-                            <h3 className="font-bold mb-2">Output:</h3>
-                            <textarea
-                                className="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 font-mono text-sm"
-                                value={codeOutput}
-                                readOnly
-                            />
-                        </div>
-                    </div>
-                    <div className="mt-4 flex space-x-2">
-                        <SButton
-                            className={`bg-black text-white px-4 py-2 rounded-lg flex-grow shadow-md hover:bg-gray-800 transition duration-300 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            onClick={runCode}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <div className="flex items-center space-x-2">
-                                    <LoadingSpinner className="w-4 h-4 text-white" />
-                                    <span>Running...</span>
-                                </div>
-                            ) : (
-                                'Run Code'
-                            )}
-                        </SButton>
-                        <SButton
-                            className={`bg-gray-300 text-black px-4 py-2 rounded-lg flex-grow shadow-md hover:bg-gray-200 transition duration-300 ${!codeOutput ? 'opacity-50 cursor-not-allowed border-gray-300' : ''}`}
-                            onClick={sendCodeToChat}
-                            disabled={!codeOutput}
-                        >
-                            Send to AI Interviewer
-                        </SButton>
+                    <div className="flex-1 rounded-lg">
+                        <h3 className="font-bold mb-2">Output:</h3>
+                        <textarea
+                            className="w-full p-2 border border-gray-300 rounded-lg bg-gray-100 font-mono text-sm"
+                            value={codeOutput}
+                            readOnly
+                        />
                     </div>
                 </div>
+                <div className="mt-4 flex space-x-2">
+                    <SButton
+                        className={`bg-black text-white px-4 py-2 rounded-lg flex-grow shadow-md hover:bg-gray-800 transition duration-300 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={runCode}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <div className="flex items-center space-x-2">
+                                <AnimatedSpinner />
+                                <span>Running...</span>
+                            </div>
+                        ) : (
+                            'Run Code'
+                        )}
+                    </SButton>
+                    <SButton
+                        className={`bg-gray-300 text-black px-4 py-2 rounded-lg flex-grow shadow-md hover:bg-gray-200 transition duration-300 ${!codeOutput ? 'opacity-50 cursor-not-allowed border-gray-300' : ''}`}
+                        onClick={sendCodeToChat}
+                        disabled={!codeOutput}
+                    >
+                        Отправить на проверку
+                    </SButton>
+                </div>
+            </div>
             </div>
 
-            {/* Buttons for toggling sidebars - repositioned for better accessibility */}
-            <div className="fixed z-30 flex flex-col space-y-2 bottom-4 right-4 sm:flex-row sm:space-x-2 sm:space-y-0 sm:top-4 sm:right-4">
-                <SButton
-                    variant="outline"
-                    onClick={toggleChat}
-                    className="bg-white hover:bg-gray-100 w-12 h-12 flex items-center justify-center rounded-full"
-                >
-                    <ForumIcon className="w-6 h-6" />
-                </SButton>
-                <SButton
-                    variant="outline"
-                    onClick={toggleCodeRunner}
-                    className="bg-white hover:bg-gray-100 w-12 h-12 flex items-center justify-center rounded-full hidden sm:flex"
-                >
-                    <TerminalIcon className="w-6 h-6" />
-                </SButton>
-                <SButton
-                    onClick={handleGetFeedbackAndExit}
-                    className="bg-black text-white hover:bg-gray-800 w-12 h-12 flex items-center justify-center rounded-full"
-                    variant="destructive"
-                >
-                    <ExitToAppIcon className="w-6 h-6" />
-                </SButton>
-            </div>
+            
+                {/* Кнопки для переключения боковых панелей */}
+                <div className="fixed z-30 flex flex-col space-y-2 bottom-4 right-4 sm:flex-row sm:space-x-2 sm:space-y-0 sm:top-4 sm:right-4">
+                    <SButton
+                        variant="outline"
+                        onClick={toggleChat}
+                        className="bg-white hover:bg-gray-100 w-12 h-12 flex items-center justify-center rounded-full"
+                    >
+                        <ForumIcon className="w-6 h-6" />
+                    </SButton>
+                    <SButton
+                        variant="outline"
+                        onClick={toggleCodeRunner}
+                        className="bg-white hover:bg-gray-100 w-12 h-12 flex items-center justify-center rounded-full hidden sm:flex"
+                    >
+                        <TerminalIcon className="w-6 h-6" />
+                    </SButton>
+                    <SButton
+                        onClick={handleGetFeedbackAndExit}
+                        className="bg-black text-white hover:bg-gray-800 w-12 h-12 flex items-center justify-center rounded-full"
+                        variant="destructive"
+                    >
+                        <ExitToAppIcon className="w-6 h-6" />
+                    </SButton>
+                </div>
 
-            <AuthModal
-                isOpen={isAuthModalOpen}
-                onClose={() => setIsAuthModalOpen(false)}
-                onAuthSuccess={handleAuthSuccess}
-            />
-        </div>
+                {/* Индикатор загрузки */}
+                {isLoading && (
+                    <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-40">
+                        <AnimatedSpinner />
+                    </div>
+                )}
+
+                {/* Модальное окно авторизации */}
+                <AuthModal
+                    isOpen={isAuthModalOpen}
+                    onClose={() => setIsAuthModalOpen(false)}
+                    onAuthSuccess={handleAuthSuccess}
+                />
+            </div>
 
 
     );
@@ -754,19 +815,6 @@ function HeyGen() {
 export default HeyGen;
 
 
-export const LoadingSpinner = ({ className }) => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={className}
-    >
-        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-    </svg>
+export const AnimatedSpinner = () => (
+    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
 );
