@@ -61,7 +61,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
         setErrors({});
 
         try {
-            const response = await axios.post("http://localhost:8002/token", loginData, {
+            const response = await axios.post("https://backend-mt-production.up.railway.app/token", loginData, {
                 headers: { 'Content-Type': 'application/json' }
             });
             const token = response.data.token;
@@ -98,7 +98,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
         }
 
         try {
-            const response = await axios.post("http://localhost:8002/register", formData, {
+            const response = await axios.post("https://backend-mt-production.up.railway.app/register", formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             const token = response.data.token;

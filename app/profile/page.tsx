@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
-const BASE_URL = "http://127.0.0.1:8002"
+const BASE_URL = "https://backend-mt-production.up.railway.app/"
 
 export default function ProfilePage() {
     const router = useRouter()

@@ -59,7 +59,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ isOpen, onClose }) => {
         }
 
         try {
-            const response = await axios.post("http://localhost:8002/register", formDataWithFile, {
+            const response = await axios.post("https://backend-mt-production.up.railway.app/register", formDataWithFile, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             localStorage.setItem("userToken", response.data.token); // Save token
