@@ -97,8 +97,7 @@ retriever = vectorstore.as_retriever()
 vectorstore_retriever_memory = VectorStoreRetrieverMemory(retriever=retriever)
 
 # MongoDB client
-url = 'mongodb+srv://admin:yBizVWOI2v1couIy@cluster0.djbpz07.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
-client = AsyncIOMotorClient(url)
+client = AsyncIOMotorClient(os.getenv("DB_URL"))
 db = client.mocktalk
 sessions_collection = db.sessions
 users_collection = db.users
