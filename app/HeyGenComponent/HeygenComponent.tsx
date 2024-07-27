@@ -109,14 +109,7 @@ const getFeedbackAndSave = async (token: string) => {
 
 };
 
-const supportedMimeTypes = [
-        'audio/wav',
-        'audio/webm',
-        'audio/ogg',
-        'audio/mp3',
-        'audio/mp4',
-        'audio/aac'
-    ];
+
 
     const startRecording = async () => {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -141,14 +134,8 @@ const supportedMimeTypes = [
                 mediaRecorder = new MediaRecorder(stream, { mimeType });
             } catch (e) {
                 console.error("Error creating MediaRecorder with mimeType", mimeType, e);
-                // Fallback to WAV if available
-                if (mimeType !== 'audio/wav' && MediaRecorder.isTypeSupported('audio/wav')) {
-                    mimeType = 'audio/wav';
-                    mediaRecorder = new MediaRecorder(stream, { mimeType });
-                } else {
-                    alert("Не удалось создать MediaRecorder. Попробуйте другой браузер.");
-                    return;
-                }
+                alert("Не удалось создать MediaRecorder. Попробуйте другой браузер.");
+                return;
             }
 
             mediaRecorderRef.current = mediaRecorder;
@@ -178,14 +165,14 @@ const supportedMimeTypes = [
 
             mediaRecorder.start();
             setIsRecording(true);
-        } catch (error:any) {
+        } catch (error: any) {
             console.error('Error starting recording:', error);
             alert(`Не удалось получить доступ к микрофону: ${error.message}`);
         }
     };
 
     const getSupportedMimeType = () => {
-        const possibleTypes = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/wav'];
+        const possibleTypes = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/ogg;codecs=opus'];
         for (let i = 0; i < possibleTypes.length; i++) {
             if (MediaRecorder.isTypeSupported(possibleTypes[i])) {
                 return possibleTypes[i];
@@ -194,13 +181,13 @@ const supportedMimeTypes = [
         return null;
     };
 
-
-const stopRecording = () => {
+    const stopRecording = () => {
         if (mediaRecorderRef.current && isRecording) {
             mediaRecorderRef.current.stop();
             setIsRecording(false);
         }
     };
+
 
 
 
