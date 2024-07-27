@@ -231,7 +231,6 @@ const getFeedbackAndSave = async (token: string) => {
         ];
         for (let i = 0; i < possibleTypes.length; i++) {
             if (MediaRecorder.isTypeSupported(possibleTypes[i])) {
-                alert(`Using MIME type: ${possibleTypes[i]}`);
                 return possibleTypes[i];
             }
         }
