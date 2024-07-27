@@ -119,15 +119,16 @@ const supportedMimeTypes = [
     ];
 
 const getSupportedMimeType = () => {
-        for (let mimeType of supportedMimeTypes) {
-            if (MediaRecorder.isTypeSupported(mimeType)) {
-                return mimeType;
+        const possibleTypes = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/wav'];
+        for (let i = 0; i < possibleTypes.length; i++) {
+            if (MediaRecorder.isTypeSupported(possibleTypes[i])) {
+                return possibleTypes[i];
             }
         }
         return null;
     };
 
-const startRecording = async () => {
+    const startRecording = async () => {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             console.error("getUserMedia is not supported on this browser");
             alert("Ваш браузер не поддерживает запись аудио");
@@ -138,19 +139,13 @@ const startRecording = async () => {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             console.log("Микрофон успешно активирован");
 
-            let mimeType = getSupportedMimeType();
-            if (!mimeType) {
-                console.error("No supported MIME type found");
-                alert("Ваш браузер не поддерживает ни один из требуемых форматов аудио");
-                return;
-            }
+            let mimeType = 'audio/webm'; // Use a common MIME type
 
             let mediaRecorder;
             try {
                 mediaRecorder = new MediaRecorder(stream, { mimeType });
             } catch (e) {
                 console.error("Error creating MediaRecorder with mimeType", mimeType, e);
-                // Fallback to WAV if available
                 if (mimeType !== 'audio/wav' && MediaRecorder.isTypeSupported('audio/wav')) {
                     mimeType = 'audio/wav';
                     mediaRecorder = new MediaRecorder(stream, { mimeType });
@@ -171,8 +166,12 @@ const startRecording = async () => {
 
             mediaRecorder.onstop = async () => {
                 const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+                console.log('Recording stopped, audio blob created:', audioBlob);
+
                 try {
+                    console.log('Starting transcription...');
                     const transcription = await transcribeAudio(audioBlob);
+                    console.log('Transcription successful:', transcription);
                     handleSendMessage(transcription);
                 } catch (error) {
                     console.error('Error transcribing audio:', error);
@@ -183,11 +182,12 @@ const startRecording = async () => {
 
             mediaRecorder.start();
             setIsRecording(true);
-        } catch (error: any) {
+        } catch (error:any) {
             console.error('Error starting recording:', error);
             alert(`Не удалось получить доступ к микрофону: ${error.message}`);
         }
     };
+
 
 const stopRecording = () => {
         if (mediaRecorderRef.current && isRecording) {
