@@ -118,16 +118,6 @@ const supportedMimeTypes = [
         'audio/aac'
     ];
 
-const getSupportedMimeType = () => {
-        const possibleTypes = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/wav'];
-        for (let i = 0; i < possibleTypes.length; i++) {
-            if (MediaRecorder.isTypeSupported(possibleTypes[i])) {
-                return possibleTypes[i];
-            }
-        }
-        return null;
-    };
-
     const startRecording = async () => {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             console.error("getUserMedia is not supported on this browser");
@@ -139,13 +129,19 @@ const getSupportedMimeType = () => {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             console.log("Микрофон успешно активирован");
 
-            let mimeType = 'audio/webm'; // Use a common MIME type
+            let mimeType = getSupportedMimeType();
+            if (!mimeType) {
+                console.error("No supported MIME type found");
+                alert("Ваш браузер не поддерживает ни один из требуемых форматов аудио");
+                return;
+            }
 
             let mediaRecorder;
             try {
                 mediaRecorder = new MediaRecorder(stream, { mimeType });
             } catch (e) {
                 console.error("Error creating MediaRecorder with mimeType", mimeType, e);
+                // Fallback to WAV if available
                 if (mimeType !== 'audio/wav' && MediaRecorder.isTypeSupported('audio/wav')) {
                     mimeType = 'audio/wav';
                     mediaRecorder = new MediaRecorder(stream, { mimeType });
@@ -186,6 +182,16 @@ const getSupportedMimeType = () => {
             console.error('Error starting recording:', error);
             alert(`Не удалось получить доступ к микрофону: ${error.message}`);
         }
+    };
+
+    const getSupportedMimeType = () => {
+        const possibleTypes = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/wav'];
+        for (let i = 0; i < possibleTypes.length; i++) {
+            if (MediaRecorder.isTypeSupported(possibleTypes[i])) {
+                return possibleTypes[i];
+            }
+        }
+        return null;
     };
 
 
