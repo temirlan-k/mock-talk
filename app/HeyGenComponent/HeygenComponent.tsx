@@ -110,6 +110,24 @@ function HeyGen() {
     };
 
 
+    const supportedMimeTypes = [
+        'audio/webm',
+        'audio/wav',
+        'audio/ogg',
+        'audio/mp3',
+        'audio/mp4', // AAC is often encapsulated in MP4 containers
+        'audio/aac'
+    ];
+
+    const getSupportedMimeType = () => {
+        for (let mimeType of supportedMimeTypes) {
+            if (MediaRecorder.isTypeSupported(mimeType)) {
+                return mimeType;
+            }
+        }
+        return null;
+    };
+
     const startRecording = async () => {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             console.error("getUserMedia is not supported on this browser");
@@ -121,7 +139,15 @@ function HeyGen() {
             // Request microphone access
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             console.log("Микрофон успешно активирован");
-            const mediaRecorder = new MediaRecorder(stream);
+
+            const mimeType = getSupportedMimeType();
+            if (!mimeType) {
+                console.error("No supported MIME type found");
+                alert("Ваш браузер не поддерживает ни один из требуемых форматов аудио");
+                return;
+            }
+
+            const mediaRecorder = new MediaRecorder(stream, { mimeType });
             mediaRecorderRef.current = mediaRecorder;
             audioChunksRef.current = [];
 
@@ -132,7 +158,7 @@ function HeyGen() {
             };
 
             mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+                const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
                 try {
                     const transcription = await transcribeAudio(audioBlob);
                     handleSendMessage(transcription);
@@ -144,11 +170,13 @@ function HeyGen() {
 
             mediaRecorder.start();
             setIsRecording(true);
-        } catch (error:any) {
+        } catch (error) {
             console.error('Error starting recording:', error);
             alert(`Не удалось получить доступ к микрофону: ${error.message}`);
         }
     };
+
+
 
     const stopRecording = () => {
         if (mediaRecorderRef.current && isRecording) {
@@ -629,22 +657,21 @@ function HeyGen() {
                     className="absolute top-0 left-0 w-full h-full object-cover"
                 />
 
-
                 {/* Mini Control Panel */}
                 <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10">
                     <div className="relative">
                         <button
                             onClick={isRecording ? stopRecording : startRecording}
                             className={`
-            flex justify-center items-center rounded-full shadow-lg
-            w-16 h-16 sm:w-20 sm:h-20
-            transition-all duration-300 ease-in-out
-            ${isRecording
+                flex justify-center items-center rounded-full shadow-lg
+                w-16 h-16 sm:w-20 sm:h-20
+                transition-all duration-300 ease-in-out
+                ${isRecording
                                     ? 'bg-red-500 hover:bg-red-600 scale-110'
                                     : 'bg-black hover:bg-gray-800 scale-100'
                                 }
-            focus:outline-none focus:ring-4 focus:ring-blue-300
-        `}
+                focus:outline-none focus:ring-4 focus:ring-blue-300
+            `}
                         >
                             {isRecording
                                 ? <StopIcon className="text-white" fontSize="large" />
@@ -659,8 +686,8 @@ function HeyGen() {
                         )}
                     </div>
                 </div>
-            </div>
-
+                
+                
             {/* Code Runner Sidebar */}
             <div className={`hidden sm:block transition-all duration-300 ease-in-out bg-white shadow-lg ${isCodeRunnerOpen ? 'w-1/2' : 'w-0'} overflow-hidden flex-shrink-0 rounded-lg`}>                <div className="p-4 h-full flex flex-col rounded-lg">
                 <div className="flex justify-between items-center mb-4">
