@@ -8,7 +8,7 @@ const API_KEY = process.env.NEXT_PUBLIC_OPENAI_API_KEY
 export async function transcribeAudio(audioBlob: Blob): Promise<string> {
 
     const formData = new FormData();
-    formData.append('file', audioBlob, 'audio.webm');
+    formData.append('file', audioBlob, 'audio.wav');
     formData.append('model', 'whisper-1');
 
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
