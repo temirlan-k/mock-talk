@@ -163,7 +163,7 @@ const getFeedbackAndSave = async (token: string) => {
                 audioChunksRef.current = [];
             };
 
-            mediaRecorder.start();
+            mediaRecorder.start(1000    );
             setIsRecording(true);
         } catch (error: any) {
             console.error('Error starting recording:', error);
@@ -172,9 +172,66 @@ const getFeedbackAndSave = async (token: string) => {
     };
 
     const getSupportedMimeType = () => {
-        const possibleTypes = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/ogg;codecs=opus'];
+        const possibleTypes = [
+            // MP4 container
+            'audio/mp4',
+            'audio/x-m4a',
+            'audio/aac',
+
+            // WebM container
+            'audio/webm',
+            'audio/webm;codecs=opus',
+            'audio/webm;codecs=vorbis',
+
+            // Ogg container
+            'audio/ogg',
+            'audio/ogg;codecs=opus',
+            'audio/ogg;codecs=vorbis',
+
+            // Wave container
+            'audio/wav',
+            'audio/x-wav',
+            'audio/wave',
+
+            // MPEG container
+            'audio/mpeg',
+            'audio/mp3',
+            'audio/x-mp3',
+
+            // 3GPP container (common in mobile)
+            'audio/3gpp',
+            'audio/3gpp2',
+
+            // FLAC
+            'audio/flac',
+            'audio/x-flac',
+
+            // Apple-specific
+            'audio/x-m4a',
+            'audio/x-aac',
+
+            // Microsoft-specific
+            'audio/x-ms-wma',
+
+            // Raw PCM
+            'audio/L16',
+            'audio/L24',
+
+            // AMR (Adaptive Multi-Rate, common in mobile)
+            'audio/amr',
+            'audio/amr-wb',
+
+            // Others
+            'audio/basic',
+            'audio/midi',
+            'audio/x-midi',
+            'audio/vnd.wav',
+            'audio/vnd.rn-realaudio',
+            'audio/x-pn-realaudio',
+        ];
         for (let i = 0; i < possibleTypes.length; i++) {
             if (MediaRecorder.isTypeSupported(possibleTypes[i])) {
+                alert(`Using MIME type: ${possibleTypes[i]}`);
                 return possibleTypes[i];
             }
         }
