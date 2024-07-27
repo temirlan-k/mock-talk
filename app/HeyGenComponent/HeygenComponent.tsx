@@ -131,7 +131,7 @@ const getFeedbackAndSave = async (token: string) => {
 
             let mediaRecorder;
             try {
-                mediaRecorder = new MediaRecorder(stream, { mimeType });
+                mediaRecorder = new MediaRecorder(stream, );
             } catch (e) {
                 console.error("Error creating MediaRecorder with mimeType", mimeType, e);
                 alert("Не удалось создать MediaRecorder. Попробуйте другой браузер.");
