@@ -110,10 +110,17 @@ function HeyGen() {
     };
 
 
-
     const startRecording = async () => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            console.error("getUserMedia is not supported on this browser");
+            alert("Ваш браузер не поддерживает запись аудио");
+            return;
+        }
+
         try {
+            // Request microphone access
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            console.log("Микрофон успешно активирован");
             const mediaRecorder = new MediaRecorder(stream);
             mediaRecorderRef.current = mediaRecorder;
             audioChunksRef.current = [];
@@ -137,56 +144,19 @@ function HeyGen() {
 
             mediaRecorder.start();
             setIsRecording(true);
-
-            // Настройка определения тишины
-            const audioContext = new AudioContext();
-            const analyser = audioContext.createAnalyser();
-            const microphone = audioContext.createMediaStreamSource(stream);
-            microphone.connect(analyser);
-            analyser.fftSize = 2048;
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-
-            const checkSilence = () => {
-                analyser.getByteFrequencyData(dataArray);
-                const sum = dataArray.reduce((a, b) => a + b, 0);
-                const average = sum / bufferLength;
-
-                if (average < 5) { // Низкий порог для тишины
-                    if (silenceTimeoutRef.current === null) {
-                        silenceTimeoutRef.current = setTimeout(() => {
-                            stopRecording();
-                        }, 5000); // 5 секунд тишины перед остановкой
-                    }
-                } else {
-                    if (silenceTimeoutRef.current) {
-                        clearTimeout(silenceTimeoutRef.current);
-                        silenceTimeoutRef.current = null;
-                    }
-                }
-
-                if (isRecording) {
-                    requestAnimationFrame(checkSilence);
-                }
-            };
-
-            checkSilence();
-        } catch (error) {
+        } catch (error:any) {
             console.error('Error starting recording:', error);
+            alert(`Не удалось получить доступ к микрофону: ${error.message}`);
         }
     };
-
 
     const stopRecording = () => {
         if (mediaRecorderRef.current && isRecording) {
             mediaRecorderRef.current.stop();
             setIsRecording(false);
-            if (silenceTimeoutRef.current) {
-                clearTimeout(silenceTimeoutRef.current);
-                silenceTimeoutRef.current = null;
-            }
         }
     };
+
 
 
     const handleMicButtonClick = () => {
@@ -515,7 +485,7 @@ function HeyGen() {
                                         console.error('Session ID is not available');
                                     }
                                 }
-                            }, 2000); // Delay for 2 seconds
+                            }, 1000); // Delay for 2 seconds
                         })
                         .catch(error => {
                             console.error('Error playing video:', error);

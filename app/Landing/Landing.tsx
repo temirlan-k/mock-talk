@@ -99,6 +99,13 @@ export function Landing() {
             name: "Yernur Melsov",
             role: "Software Developer",
             content: "Я за неделю подготовился к собеседованию и успешно прошел его. Thanks MockTalk.ai!"
+        },
+        {
+            id: 7,
+            image: "https://media.licdn.com/dms/image/D4D35AQG3sEvbyqVaLA/profile-framedphoto-shrink_800_800/0/1705678614397?e=1722430800&v=beta&t=25kCzuWeBjer9S6Ayi_mPDGF4p-C7kY6n5BCP2zc3wA",
+            name: "Mukan Idrisov",
+            role: "Frontend Developer at SDU Technopark",
+            content:"Очень удобный и приятный интерфейс ,пользуюсь этим  веб приложением для проверки своих знаний,обратная связь отличная."
         }
     ];
     useEffect(() => {
