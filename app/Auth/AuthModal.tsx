@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
@@ -6,39 +6,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
-import FileInput from "../RegisterForm/FileInputUi";
 
 // Define the props type
 interface AuthModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onAuthSuccess: (token: string) => void; // Ensure this is defined as expected
+    onAuthSuccess: (token: string) => void;
 }
-
-// Define the errors type
-type ErrorsType = {
-    email?: string;
-    password?: string;
-    name?: string;
-    jobTitle?: string;
-    experience?: string;
-    cv?: string;
-};
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [loginData, setLoginData] = useState({ email: "", password: "" });
-    const [registerData, setRegisterData] = useState({
-        name: "",
-        email: "",
-        password: "",
-        jobTitle: "",
-        experience: ""
-    });
-    const [cv, setCv] = useState<File | null>(null);
-    const [errors, setErrors] = useState<ErrorsType>({});
+    const [registerData, setRegisterData] = useState({ email: "", password: "" });
+    const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
     const router = useRouter();
     const { toast } = useToast();
+
+    useEffect(() => {
+        if (!isOpen) {
+            setLoginData({ email: "", password: "" });
+            setRegisterData({ email: "", password: "" });
+            setErrors({});
+        }
+    }, [isOpen]);
 
     const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setLoginData({ ...loginData, [e.target.id]: e.target.value });
@@ -47,13 +37,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
     const handleRegisterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setRegisterData({ ...registerData, [e.target.id]: e.target.value });
         setErrors({ ...errors, [e.target.id]: "" });
-    };
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            setCv(e.target.files[0]);
-            setErrors({ ...errors, cv: "" });
-        }
     };
 
     const handleLoginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -68,7 +51,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
             localStorage.setItem("userToken", token);
             toast({ title: "Успешный вход", description: "Добро пожаловать!" });
             onClose();
-            onAuthSuccess(token); 
+            onAuthSuccess(token);
             router.push('/talk');
         } catch (error: any) {
             if (error.response && error.response.status === 401) {
@@ -89,26 +72,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
 
     const handleRegisterSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const formData = new FormData();
-        Object.entries(registerData).forEach(([key, value]) => {
-            formData.append(key, value);
-        });
-        if (cv) {
-            formData.append("cv", cv);
-        }
+        setErrors({});
 
         try {
-            const response = await axios.post("https://backend-mt-production.up.railway.app/register", formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
+            const response = await axios.post("https://backend-mt-production.up.railway.app/register", registerData, {
+                headers: { 'Content-Type': 'application/json' }
             });
             const token = response.data.token;
             localStorage.setItem("userToken", token);
             toast({ title: "Регистрация успешна", description: "Вы успешно зарегистрированы." });
             onClose();
-            onAuthSuccess(token); // Pass the token here
+            onAuthSuccess(token);
             router.push('/');
         } catch (error: any) {
-            setErrors({});
             if (error.response) {
                 const { status, data } = error.response;
                 if (status === 400) {
@@ -189,19 +165,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
                 ) : (
                     <form onSubmit={handleRegisterSubmit} className="space-y-4">
                         <div>
-                            <Label htmlFor="name">Имя</Label>
-                            <Input
-                                placeholder="Portakalata Portakalatov"
-                                id="name"
-                                type="text"
-                                value={registerData.name}
-                                onChange={handleRegisterChange}
-                                required
-                                className={`border rounded-md ${errors.name ? 'border-red-500' : 'border-gray-300'}`}
-                            />
-                            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
-                        </div>
-                        <div>
                             <Label htmlFor="email">Email</Label>
                             <Input
                                 id="email"
@@ -209,8 +172,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
                                 type="email"
                                 value={registerData.email}
                                 onChange={handleRegisterChange}
-                                required
-                                className={`border rounded-md ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+                                className={`p-2 border rounded-md focus:outline-none focus:ring-2 ${errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-black'}`}
                             />
                             {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
                         </div>
@@ -218,61 +180,29 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
                             <Label htmlFor="password">Пароль</Label>
                             <Input
                                 id="password"
-                                type="password"
                                 placeholder="••••••••"
+                                type="password"
                                 value={registerData.password}
                                 onChange={handleRegisterChange}
-                                required
-                                className={`border rounded-md ${errors.password ? 'border-red-500' : 'border-gray-300'}`}
+                                className={`p-2 border rounded-md focus:outline-none focus:ring-2 ${errors.password ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-black'}`}
                             />
                             {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
                         </div>
-                        <div>
-                            <Label htmlFor="jobTitle">Должность</Label>
-                            <Input
-                                id="jobTitle"
-                                type="text"
-                                placeholder="Frontend Developer"
-                                value={registerData.jobTitle}
-                                onChange={handleRegisterChange}
-                                required
-                                className={`border rounded-md ${errors.jobTitle ? 'border-red-500' : 'border-gray-300'}`}
-                            />
-                            {errors.jobTitle && <p className="text-red-500 text-sm">{errors.jobTitle}</p>}
-                        </div>
-                        <div>
-                            <Label htmlFor="experience">Опыт</Label>
-                            <Input
-                                id="experience"
-                                type="text"
-                                placeholder="2 года"
-                                value={registerData.experience}
-                                onChange={handleRegisterChange}
-                                required
-                                className={`border rounded-md ${errors.experience ? 'border-red-500' : 'border-gray-300'}`}
-                            />
-                            {errors.experience && <p className="text-red-500 text-sm">{errors.experience}</p>}
-                        </div>
-                        <div>
-                            <Label htmlFor="cv">Резюме (pdf)</Label>
-                                <FileInput
-                                    id="cv"
-                                    accept=".pdf"
-                                    onChange={handleFileChange}
-                                    className={`border rounded-md ${errors.cv ? 'border-red-500' : 'border-gray-300'}`}
-                                />
-
-                            {errors.cv && <p className="text-red-500 text-sm">{errors.cv}</p>}
-                        </div>
-                        <Button type="submit" className="w-full bg-black hover:bg-gray-800 text-white py-3 rounded-md">
+                        <Button
+                            type="submit"
+                            className="w-full bg-black hover:bg-gray-800 text-white py-3 rounded-md"
+                        >
                             Зарегистрироваться
                         </Button>
                     </form>
                 )}
-                <div className="flex justify-center mt-4">
-                    <Button onClick={() => setIsLogin(!isLogin)} variant="link">
-                        {isLogin ? "Нет аккаунта? Зарегистрируйтесь" : "Есть аккаунт? Войдите"}
-                    </Button>
+                <div className="text-center mt-4">
+                    <button
+                        onClick={() => setIsLogin(!isLogin)}
+                        className="text-blue-500 hover:underline"
+                    >
+                        {isLogin ? "Нет аккаунта? Регистрация" : "Есть аккаунт? Войти"}
+                    </button>
                 </div>
             </DialogContent>
         </Dialog>

@@ -75,22 +75,22 @@ export function Landing() {
         },
         {
             id: 3,
-            image:"https://media.licdn.com/dms/image/D4D35AQG3sEvbyqVaLA/profile-framedphoto-shrink_800_800/0/1705678614397?e=1722430800&v=beta&t=25kCzuWeBjer9S6Ayi_mPDGF4p-C7kY6n5BCP2zc3wA",
+            image: "https://media.licdn.com/dms/image/D4D03AQFZr5IQ3knJPg/profile-displayphoto-shrink_200_200/0/1705678517119?e=1727913600&v=beta&t=ojWmwDPkALrr1eNSuB34N-F9JT2GtIOmyTDQEn3kUxQ",
             name: "Aiqyn Ibrayev",
             role: "Software Developer at kenes.ai",
             content: "Рекомендую всем, кто хочет улучшить свои навыки прохождения собеседований.",
         },
         {
             id: 4,
-            image: "https://media.licdn.com/dms/image/C4D03AQFJ7j4QYkN8TQ/profile-displayphoto-shrink_800_800/0/1631711682193?e=1722430800&v=beta&t=9J8zjK2w5K1lQb6Y4V0w9Q7v1fJXzR7k6zK3Y9f3W5A",
-            name: "Meirman Sarsenbayev",
-            role: "Frontend Developer at Vector Education", 
+            image: "https://media.licdn.com/dms/image/D4E03AQEzV9H0edAJwA/profile-displayphoto-shrink_100_100/0/1718303354517?e=1727913600&v=beta&t=L8YUw-XndtRmvjAO4EOdpx5XgbwfvXY-_4RwiUoS-l8",
+            name: "Meyirman Sarsenbay",
+            role: "Frontend Developer", 
             content: "Отличное приложение для подготовки к собеседованиям. Спасибо MockTalk.ai!",
         },
         {
             id: 5,
-            image: "https://media.licdn.com/dms/image/D4D35AQGWvYxdRXblfg/profile-framedphoto-shrink_100_100/0/1719663822668?e=1722589200&v=beta&t=nJngt47r3eCUXtznBq_rMhs7BMaheYE_UJmypY7tfDM",
-            name: "Dimash Arystanbek",
+            image: "https://media.licdn.com/dms/image/D4D35AQHU_t0BqTzFNw/profile-framedphoto-shrink_200_200/0/1722079046440?e=1722808800&v=beta&t=hjgu_7c18OnMxc1xh4eh7cAijm5Xtd-mf4Bum5-jrkg",
+            name: "Dinmukhammed Arystambek ",
             role: "CEO at iHunter.ai",
             content: "Отличное приложение для подготовки к собеседованиям. Спасибо MockTalk.ai!"
         },
@@ -107,11 +107,18 @@ export function Landing() {
             name: "Mukan Idrisov",
             role: "Frontend Developer at SDU Technopark",
             content:"Очень удобный и приятный интерфейс ,пользуюсь этим  веб приложением для проверки своих знаний,обратная связь отличная."
+        },
+        {
+            id: 8,
+            image: "https://media.licdn.com/dms/image/D4D35AQGeQfpZLXPK6g/profile-framedphoto-shrink_100_100/0/1708842741960?e=1722808800&v=beta&t=aXGm95G4MHEYaJPRdfFMWlMCqdvyU2NQI0bvBVvR6as",
+            name: "Adilet Zhandyrbai",
+            role: "Work&Travel Worker",
+            content: "Отлично приложение, поддерживает не только IT собеседования, но и подготовку к Travel VISA интревью!"
         }
     ];
     useEffect(() => {
         initGA('YOUR-GA4-TRACKING-ID');
-        logPageView();
+        logPageView(); 
     }, []);
 
     const [position, setPosition] = useState("");
@@ -186,6 +193,7 @@ MockTalk - ваш путь к успешному интервью!              
                                                         <SelectItem value="data-science">Data Science</SelectItem>
                                                         <SelectItem value="cybersecurity">Cybersecurity</SelectItem>
                                                         <SelectItem value="data-structures-and-algorithms">DSA</SelectItem>
+                                                        <SelectItem value="visa-interview">VISA Interview </SelectItem>
                                                     </SelectGroup>
                                                 </SelectContent>
                                             </Select>
@@ -239,11 +247,13 @@ MockTalk - ваш путь к успешному интервью!              
                             <div className="absolute inset-0 bg-gradient-to-r from-gray-900 to-transparent opacity-20 rounded-lg"></div>
                             <iframe
                                 className="w-full aspect-video rounded-lg shadow-2xl"
-                                src="https://www.youtube.com/embed/UTd3gwsbyw4?autoplay=1&playlist=UTd3gwsbyw4"
+                                src="https://www.youtube.com/embed/UTd3gwsbyw4?autoplay=1&playlist=UTd3gwsbyw4&mute=0"
                                 allow="autoplay; encrypted-media"
-                                allowFullScreen>
+                                allowFullScreen
+                                    >
                             </iframe>
                         </div>
+
                     </div>
                 </section>
 
@@ -274,7 +284,7 @@ MockTalk - ваш путь к успешному интервью!              
                                 {
                                     icon: <FaCode className="text-5xl text-sky-500 mb-4" />,
                                     title: "Встроенный компилятор кода",
-                                    description: "Демонстрируйте свои навыки программирования с поддержкой множества языков, включая SQL и PowerShell."
+                                    description: "Демонстрируйте свои навыки программирования с поддержкой множества языков, включая SQL и PowerShell.( Работает на Desktop )"
                                 },
                                 {
                                     icon: <FaClipboardCheck className="text-5xl text-sky-500 mb-4" />,

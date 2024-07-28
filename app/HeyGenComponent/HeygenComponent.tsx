@@ -24,6 +24,7 @@ const predefinedVoiceId = "077ab11b14f04ce0b49b5f6e5cc20979";
 
 
 export function HeyGen() {
+
     const [isAvatarLoading, setIsAvatarLoading] = useState(true);
     const [stream, setStream] = useState<MediaStream | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null); // Add this state if needed
@@ -79,6 +80,7 @@ export function HeyGen() {
             setIsAuthModalOpen(true);
         }
     };
+
 
     const handleAuthSuccess = async (token: string) => {
         setJwtToken(token);
@@ -575,7 +577,7 @@ export function HeyGen() {
                                         console.error('Session ID is not available');
                                     }
                                 }
-                            }, 1000); // Delay for 2 seconds
+                            }); // Delay for 2 seconds
                         })
                         .catch(error => {
                             console.error('Error playing video:', error);
@@ -622,6 +624,7 @@ export function HeyGen() {
             "javascript": "18.15.0",
             "python": "3.10",
             "java": "15",
+            "c++": "10.2.0",
             "ruby": "3.0.1",
             "php": "8.2.3",
             "go": "1.16.2",
@@ -671,7 +674,9 @@ export function HeyGen() {
     };
 
     return (
+
         <div className="flex h-screen overflow-hidden">
+
             {/* Chat Sidebar */}
             <div className={`fixed top-0 left-0 h-full transition-all duration-300 ease-in-out bg-white shadow-lg border border-gray-300 ${isChatOpen ? 'w-80 sm:w-96 p-4 rounded-lg' : 'w-0 p-0'} overflow-hidden z-20`}>
                 <div className={`h-full flex flex-col ${isChatOpen ? 'opacity-100' : 'opacity-0'}`}>
@@ -709,7 +714,7 @@ export function HeyGen() {
                     onLoadStart={handleLoadStart}
                     className="absolute top-0 left-0 w-full h-full object-cover"
                 />
-                
+
                 {/* Control Panel */}
                 <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10 flex flex-col items-center space-y-4">
                     <div className="relative flex flex-col items-center">
@@ -837,6 +842,15 @@ export function HeyGen() {
                     </div>
                 </div>
             </div>
+            <AuthModal
+                isOpen={isAuthModalOpen}
+                onClose={() => setIsAuthModalOpen(false)}
+                onAuthSuccess={(token) => {
+                    // После успешной авторизации, закрываем модальное окно и выполняем выход
+                    setIsAuthModalOpen(false);
+                    endSession(data as SessionData || null, setDebug, setIsLoading, setChatMessages, setErrorMessage, router);
+                }}
+            />
         </div>
     );
 };

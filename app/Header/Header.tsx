@@ -34,12 +34,13 @@ const Header: React.FC = () => {
         const token = localStorage.getItem("userToken");
         if (token) {
             try {
-                const response = await axios.get("http://localhost:8002/users/me", {
+                const response = await axios.get("https://backend-mt-production.up.railway.app/users/me", {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
                 });
-                setUserEmail(response.data.name);
+                console.log("User data fetched:", response.data);
+                setUserEmail(response.data.email);
             } catch (error) {
                 console.error("Ошибка при получении информации о пользователе:", error);
                 setUserEmail(null);
@@ -55,6 +56,7 @@ const Header: React.FC = () => {
 
     // Update user information after successful login
     const handleLoginSuccess = async () => {
+        console.log("Login successful, fetching user data...");
         await fetchUser();
     };
 
@@ -71,7 +73,6 @@ const Header: React.FC = () => {
                         {userEmail ? (
                             <>
                                 <Link href="/profile" className="text-black hover:text-grey transition-colors">
-                                    
                                     <Button>{userEmail}</Button>
                                 </Link>
                                 <DropdownMenu>

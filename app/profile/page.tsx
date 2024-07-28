@@ -10,17 +10,15 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
-const BASE_URL = "https://backend-mt-production.up.railway.app/"
+const BASE_URL = "https://backend-mt-production.up.railway.app"
 
 export default function ProfilePage() {
     const router = useRouter()
     const [isEditing, setIsEditing] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
     const [profile, setProfile] = useState({
-        name: '',
         email: '',
-        jobTitle: '',
-        experience: '',
+
     })
     const [feedbacks, setFeedbacks] = useState([])
 
@@ -29,18 +27,18 @@ export default function ProfilePage() {
         if (token) {
             try {
                 setIsLoading(true)
+                // Fetch profile
                 const profileResponse = await axios.get(`${BASE_URL}/users/me`, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
                 })
+                console.log("Profile response data:", profileResponse.data)
                 setProfile({
-                    name: profileResponse.data.name,
-                    email: profileResponse.data.email,
-                    jobTitle: profileResponse.data.job_title,
-                    experience: profileResponse.data.experience,
+                    email: profileResponse.data.email || '',
                 })
 
+                // Fetch feedbacks
                 const feedbacksResponse = await axios.get(`${BASE_URL}/feedbacks/`, {
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -53,6 +51,9 @@ export default function ProfilePage() {
             } finally {
                 setIsLoading(false)
             }
+        } else {
+            console.error("User token is missing.")
+            setIsLoading(false)
         }
     }
 
@@ -60,12 +61,12 @@ export default function ProfilePage() {
         fetchProfileAndFeedbacks()
     }, [])
 
-    const handleInputChange = (e:any) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
         setProfile(prev => ({ ...prev, [name]: value }))
     }
 
-    const handleSubmit = async (e:any) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         const token = localStorage.getItem("userToken")
         if (token) {
@@ -80,6 +81,8 @@ export default function ProfilePage() {
             } catch (error) {
                 console.error("Error updating profile:", error)
             }
+        } else {
+            console.error("User token is missing.")
         }
     }
 
@@ -101,25 +104,11 @@ export default function ProfilePage() {
                 <TabsContent value="profile">
                     <Card>
                         <CardHeader className="flex flex-col items-center space-y-4">
-                            <Avatar className="h-24 w-24">
-                                <AvatarImage src="/placeholder-avatar.jpg" alt={profile.name} />
-                                <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <CardTitle className="text-2xl font-bold">{profile.name || 'Profile'}</CardTitle>
-                            
+
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={handleSubmit} className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="name">Имя</Label>
-                                    <Input
-                                        id="name"
-                                        name="name"
-                                        value={profile.name}
-                                        onChange={handleInputChange}
-                                        readOnly={!isEditing}
-                                    />
-                                </div>
+
                                 <div className="space-y-2">
                                     <Label htmlFor="email">Email</Label>
                                     <Input
@@ -131,27 +120,13 @@ export default function ProfilePage() {
                                         readOnly={!isEditing}
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="jobTitle">Позиция</Label>
-                                    <Input
-                                        id="jobTitle"
-                                        name="jobTitle"
-                                        value={profile.jobTitle}
-                                        onChange={handleInputChange}
-                                        readOnly={!isEditing}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="experience">Опыт</Label>
-                                    <Input
-                                        id="experience"
-                                        name="experience"
-                                        value={profile.experience}
-                                        onChange={handleInputChange}
-                                        readOnly={!isEditing}
-                                    />
-                                </div>
-             
+
+                                {isEditing && (
+                                    <div className="flex justify-end">
+                                        <Button type="submit">Save Changes</Button>
+                                    </div>
+                                )}
+
                             </form>
                         </CardContent>
                     </Card>
@@ -173,7 +148,7 @@ export default function ProfilePage() {
                                 </div>
                             ) : feedbacks.length > 0 ? (
                                 <ScrollArea className="h-[500px] w-full rounded-md border p-4">
-                                    {feedbacks.map((feedback:any, index) => (
+                                    {feedbacks.map((feedback: any, index: number) => (
                                         <div key={feedback._id} className="mb-6 p-6 bg-secondary rounded-lg shadow-md">
                                             <div className="flex justify-between items-center mb-3">
                                                 <h3 className="text-lg font-semibold">Feedback #{feedbacks.length - index}</h3>
