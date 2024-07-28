@@ -10,6 +10,7 @@ import styles from './Landing.module.css'
 import { initGA, logPageView } from '../analytics';
 import RegistrationForm from "../RegisterForm/RegisterForm";
 import { FaCheckCircle } from 'react-icons/fa';
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import BoltIcon from '@mui/icons-material/Bolt';
 import { FaMicrophone, FaCode, FaRobot, FaClipboardCheck } from 'react-icons/fa';
 import {
@@ -17,7 +18,7 @@ import {
     SelectContent,
     SelectGroup,
     SelectItem,
-    SelectLabel,
+    SelectLabel,    
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
@@ -146,9 +147,7 @@ export function Landing() {
                                 </span>
                             </h1>
                             <p className="text-lg pb-4 md:text-xl text-gray-700 leading-relaxed">
-                                Подготовьтесь к следующему собеседованию с нашим помощником на базе ИИ. Получите персонализированную обратную связь и советы, чтобы успешно пройти интервью.
-                            </p>
-
+MockTalk - ваш путь к успешному интервью!                            </p>
                             <Dialog>
                                 <DialogTrigger asChild>
                                     <Button className="w-full md:w-auto bg-black hover:bg-gray-800 text-white text-lg py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105">
@@ -157,6 +156,9 @@ export function Landing() {
                                 </DialogTrigger>
                                 <DialogContent className="sm:max-w-[425px] mx-auto">
                                     <DialogHeader>
+                                        <VisuallyHidden>
+                                            <DialogTitle>Настройки тренировки</DialogTitle>
+                                        </VisuallyHidden>
                                         <DialogDescription>
                                             Выберите позицию и уровень опыта.
                                         </DialogDescription>
@@ -170,12 +172,20 @@ export function Landing() {
                                                 <SelectTrigger className="w-[180px]">
                                                     <SelectValue placeholder="Выберите" />
                                                 </SelectTrigger>
-                                                <SelectContent>
+                                                <SelectContent className="max-h-60 overflow-y-auto">
                                                     <SelectGroup>
                                                         <SelectItem value="frontend">Frontend</SelectItem>
                                                         <SelectItem value="backend">Backend</SelectItem>
                                                         <SelectItem value="fullstack">Fullstack</SelectItem>
                                                         <SelectItem value="devops">DevOps</SelectItem>
+                                                        <SelectItem value="android-developer">Android Developer</SelectItem>
+                                                        <SelectItem value="ios-developer">IOS Developer</SelectItem>
+                                                        <SelectItem value="mobile-crossplarform dev">Mobile Cross Platform Developer</SelectItem>
+                                                        <SelectItem value="machine-learning">Machine Learning</SelectItem>
+                                                        <SelectItem value="data-analytics">Data analytics</SelectItem>
+                                                        <SelectItem value="data-science">Data Science</SelectItem>
+                                                        <SelectItem value="cybersecurity">Cybersecurity</SelectItem>
+                                                        <SelectItem value="data-structures-and-algorithms">DSA</SelectItem>
                                                     </SelectGroup>
                                                 </SelectContent>
                                             </Select>
@@ -188,7 +198,7 @@ export function Landing() {
                                                 <SelectTrigger className="w-[180px]">
                                                     <SelectValue placeholder="Выберите" />
                                                 </SelectTrigger>
-                                                <SelectContent>
+                                                <SelectContent className="max-h-60 overflow-y-auto">
                                                     <SelectGroup>
                                                         <SelectItem value="intern">Intern</SelectItem>
                                                         <SelectItem value="junior">Junior</SelectItem>
@@ -209,6 +219,7 @@ export function Landing() {
                                     </div>
                                 </DialogContent>
                             </Dialog>
+                            
                             <div className="mt-8 space-y-4">
                                 <div className="flex items-center">
                                     <BoltIcon className="text-sky-500 mr-2" />
