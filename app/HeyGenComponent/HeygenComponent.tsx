@@ -125,16 +125,18 @@ export function HeyGen() {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             console.log("Микрофон успешно активирован");
 
-            let mimeType = getSupportedMimeType();
+            let mimeType:any = getSupportedMimeType();
             if (!mimeType) {
                 console.error("No supported MIME type found");
                 alert("Ваш браузер не поддерживает ни один из требуемых форматов аудио");
                 return;
             }
 
+            console.log("Selected MIME type:", mimeType);
+
             let mediaRecorder;
             try {
-                mediaRecorder = new MediaRecorder(stream,);
+                mediaRecorder = new MediaRecorder(stream, { mimeType });
             } catch (e) {
                 console.error("Error creating MediaRecorder with mimeType", mimeType, e);
                 alert("Не удалось создать MediaRecorder. Попробуйте другой браузер.");
@@ -153,16 +155,19 @@ export function HeyGen() {
             mediaRecorder.onstop = async () => {
                 const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
                 console.log('Recording stopped, audio blob created:', audioBlob);
+                console.log('Blob type:', audioBlob.type);
+                console.log('Blob size:', audioBlob.size);
 
                 try {
                     console.log('Starting transcription...');
-                    const transcription = await transcribeAudio(audioBlob);
+                    const transcription = await transcribeAudio(audioBlob, mimeType);
                     console.log('Transcription successful:', transcription);
                     handleSendMessage(transcription);
                 } catch (error) {
                     console.error('Error transcribing audio:', error);
                     alert('Не удалось преобразовать аудио в текст. Пожалуйста, попробуйте еще раз.');
                 }
+
                 audioChunksRef.current = [];
             };
 
@@ -173,6 +178,7 @@ export function HeyGen() {
             alert(`Не удалось получить доступ к микрофону: ${error.message}`);
         }
     };
+
 
     const getSupportedMimeType = () => {
         const possibleTypes = [
@@ -338,33 +344,6 @@ export function HeyGen() {
         fetchAndSetAccessToken();
     }, []);
 
-    const initializeSpeechRecognition = () => {
-        if (!recognitionRef.current) return;
-
-        recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = true;
-        recognitionRef.current.lang = 'ru-RU';
-
-        recognitionRef.current.onresult = (event: any) => {
-            let finalTranscript = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript;
-                }
-            }
-            setRecognizedText(finalTranscript);
-        };
-
-        recognitionRef.current.onend = () => {
-            if (isRecording) {
-                recognitionRef.current.start();
-            }
-        };
-
-        recognitionRef.current.onerror = (event: any) => {
-            console.error('Speech recognition error detected:', event.error);
-        };
-    };
 
     let isFetchingToken = false;
 
