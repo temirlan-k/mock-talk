@@ -244,11 +244,15 @@ MockTalk - ваш путь к успешному интервью!              
                             </div>
                         </div>
                         <div className="relative md:w-1/2">
-                            <video
+                            <iframe
                                 className="w-full aspect-video rounded-lg shadow-2xl"
                                 src="https://www.youtube.com/embed/UTd3gwsbyw4"
-                            ></video>
+                                title="MockTalk.ai Introduction"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                            ></iframe>
                         </div>
+
                     </div>
                 </section>
 
