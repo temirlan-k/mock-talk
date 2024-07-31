@@ -244,16 +244,11 @@ MockTalk - ваш путь к успешному интервью!              
                             </div>
                         </div>
                         <div className="relative md:w-1/2">
-                            <div className="absolute inset-0 bg-gradient-to-r from-gray-900 to-transparent opacity-20 rounded-lg"></div>
-                            <iframe
+                            <video
                                 className="w-full aspect-video rounded-lg shadow-2xl"
-                                src="https://www.youtube.com/embed/UTd3gwsbyw4?autoplay=1&playlist=UTd3gwsbyw4&mute=0"
-                                allow="autoplay; encrypted-media"
-                                allowFullScreen
-                                    >
-                            </iframe>
+                                src="https://www.youtube.com/embed/UTd3gwsbyw4"
+                            ></video>
                         </div>
-
                     </div>
                 </section>
 
