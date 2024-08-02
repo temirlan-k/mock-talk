@@ -24,6 +24,7 @@ const predefinedVoiceId = "077ab11b14f04ce0b49b5f6e5cc20979";
 
 
 export function HeyGen() {
+    const [textInput, setTextInput] = useState<string>(''); // Добавьте это
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const [isAvatarLoading, setIsAvatarLoading] = useState(true);
     const [stream, setStream] = useState<MediaStream | null>(null);
@@ -55,6 +56,15 @@ export function HeyGen() {
     const [userToken, setJwtToken] = useState<string | null>(null);
 
     const audioChunksRef = useRef<Blob[]>([]);
+
+    const handleTextInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setTextInput(event.target.value);
+    };
+
+    const handleTextSendClick = async () => {
+        await handleSendMessage(textInput);
+        setTextInput('');
+    };
 
     useEffect(() => {
         const savedToken = localStorage.getItem('userToken');
@@ -681,9 +691,23 @@ export function HeyGen() {
                             </div>
                         ))}
                     </div>
+                    <div className="flex space-x-4 mt-4">
+                        <input
+                            type="text"
+                            value={textInput}
+                            onChange={handleTextInputChange}
+                            className="flex-grow p-2 border border-gray-300 rounded-lg"
+                            placeholder="Введите ваше сообщение..."
+                        />
+                        <button
+                            onClick={handleTextSendClick}
+                            className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600"
+                        >
+                            <SendIcon />
+                        </button>
+                    </div>
                 </div>
             </div>
-
             {/* Main Content */}
             <div className="flex-1 transition-all duration-300 ease-in-out relative">
                 {(isLoading || isAvatarLoading) && (
@@ -709,12 +733,12 @@ export function HeyGen() {
                         <button
                             onClick={isRecording ? stopRecording : startRecording}
                             className={`
-                flex justify-center items-center rounded-full shadow-lg
-                w-16 h-16 sm:w-20 sm:h-20
-                transition-all duration-300 ease-in-out
-                ${isRecording ? 'bg-red-500 hover:bg-red-600 scale-110' : 'bg-black hover:bg-gray-800 scale-100'}
-                focus:outline-none focus:ring-4 focus:ring-blue-300
-              `}
+                        flex justify-center items-center rounded-full shadow-lg
+                        w-16 h-16 sm:w-20 sm:h-20
+                        transition-all duration-300 ease-in-out
+                        ${isRecording ? 'bg-red-500 hover:bg-red-600 scale-110' : 'bg-black hover:bg-gray-800 scale-100'}
+                        focus:outline-none focus:ring-4 focus:ring-blue-300
+                    `}
                         >
                             {isRecording ? <StopIcon className="text-white" fontSize="large" /> : <MicIcon className="text-white" fontSize="large" />}
                         </button>
@@ -728,27 +752,41 @@ export function HeyGen() {
 
                     {/* Buttons for toggling sidebars */}
                     <div className="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
-                        <SButton
-                            variant="outline"
-                            onClick={toggleChat}
-                            className="bg-white hover:bg-gray-100 w-12 h-12 flex items-center justify-center rounded-full"
-                        >
-                            <ForumIcon className="w-6 h-6" />
-                        </SButton>
-                        <SButton
-                            variant="outline"
-                            onClick={toggleCodeRunner}
-                            className="bg-white hover:bg-gray-100 w-12 h-12 flex items-center justify-center rounded-full hidden sm:flex"
-                        >
-                            <TerminalIcon className="w-6 h-6" />
-                        </SButton>
-                        <SButton
-                            onClick={handleGetFeedbackAndExit}
-                            className="bg-black text-white hover:bg-gray-800 w-12 h-12 flex items-center justify-center rounded-full"
-                            variant="destructive"
-                        >
-                            <ExitToAppIcon className="w-6 h-6" />
-                        </SButton>
+                        {/* Chat Button */}
+                        <div className="flex flex-col items-center">
+                            <SButton
+                                variant="outline"
+                                onClick={toggleChat}
+                                className="bg-white hover:bg-gray-100 w-12 h-12 flex items-center justify-center rounded-full"
+                            >
+                                <ForumIcon className="w-6 h-6" />
+                            </SButton>
+                            <span className="mt-1 text-xs">Chat</span>
+                        </div>
+
+                        {/* Code Runner Button */}
+                        <div className="flex flex-col items-center hidden sm:flex">
+                            <SButton
+                                variant="outline"
+                                onClick={toggleCodeRunner}
+                                className="bg-white hover:bg-gray-100 w-12 h-12 flex items-center justify-center rounded-full"
+                            >
+                                <TerminalIcon className="w-6 h-6" />
+                            </SButton>
+                            <span className="mt-1 text-xs">Code Runner</span>
+                        </div>
+
+                        {/* Exit Button */}
+                        <div className="flex flex-col items-center">
+                            <SButton
+                                onClick={handleGetFeedbackAndExit}
+                                className="bg-black text-white hover:bg-gray-800 w-12 h-12 flex items-center justify-center rounded-full"
+                                variant="destructive"
+                            >
+                                <ExitToAppIcon className="w-6 h-6" />
+                            </SButton>
+                            <span className="mt-1 text-xs">Exit</span>
+                        </div>
                     </div>
                 </div>
             </div>
