@@ -61,14 +61,14 @@ export function Landing() {
     const testimonials = [
         {
             id: 1,
-            image: "https://media.licdn.com/dms/image/D4E35AQEKGBZuNOewhw/profile-framedphoto-shrink_200_200/0/1721727900715?e=1722427200&v=beta&t=5VkLhp2c0WjvrKfjcgj-vJZ4iU-PXxYAwFCKtGWq3sU",
+            image: "https://media.licdn.com/dms/image/D4E35AQEKGBZuNOewhw/profile-framedphoto-shrink_200_200/0/1721727900715?e=1723197600&v=beta&t=puc5Le722FS-t1cGeYUi2-zLyH_SMDL4loZ2sl25_zo",
             name: "Madiyar Kenzhebayev",
             role: "CEO at taskify.ai",
             content: "Крутое приложение для молодых специалистов, которые хотят улучшить свои навыки прохождения собеседований.",
         },
         {
             id: 2,
-            image:"https://media.licdn.com/dms/image/D4E35AQGfYUWM0IufSg/profile-framedphoto-shrink_800_800/0/1669468627222?e=1722427200&v=beta&t=Ues9ClLfvUPTaLLzWU_zrHY6pSn28j5ja5wU_f7edZg",
+            image:"https://media.licdn.com/dms/image/D4E35AQGfYUWM0IufSg/profile-framedphoto-shrink_100_100/0/1669468627222?e=1723201200&v=beta&t=J81QeaII3eOWHpEG7Yf1cy6Cp6MUAAEZDBBfcMZ_Jng",
             name: "Meirzhan Amangeldiev",
             role: "Fullstack Developer at FinanceX",
             content: "Отличный инструмент для подготовки к интервью.Благодаря MockTalk.ai я получил работу мечты!",
@@ -96,14 +96,14 @@ export function Landing() {
         },
         {
             id: 6,
-            image: "https://media.licdn.com/dms/image/D4D35AQFYkvtAdyWJfQ/profile-framedphoto-shrink_200_200/0/1719587524903?e=1722589200&v=beta&t=-Cv7d5KMV4ljfQlc0q__LWRfA-_tMuGOACK3-gKzXmI",
+            image: "https://media.licdn.com/dms/image/D4D35AQFYkvtAdyWJfQ/profile-framedphoto-shrink_200_200/0/1719587524903?e=1723197600&v=beta&t=BU1tkSFW_wypGApf7NWFwqevNoEi4ziFXAlt7cW6oTs",
             name: "Yernur Melsov",
             role: "Software Developer",
             content: "Я за неделю подготовился к собеседованию и успешно прошел его. Thanks MockTalk.ai!"
         },
         {
             id: 7,
-            image: "https://media.licdn.com/dms/image/D4D35AQG3sEvbyqVaLA/profile-framedphoto-shrink_800_800/0/1705678614397?e=1722430800&v=beta&t=25kCzuWeBjer9S6Ayi_mPDGF4p-C7kY6n5BCP2zc3wA",
+            image: "https://media.licdn.com/dms/image/v2/D4D03AQF3h0StIJYSZg/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1722448080791?e=1727913600&v=beta&t=_tRyuo5KG6uzuc7MmAfdVfVIDtM6CwF3Qo_H_xon1jg",
             name: "Mukan Idrisov",
             role: "Frontend Developer at SDU Technopark",
             content:"Очень удобный и приятный интерфейс ,пользуюсь этим  веб приложением для проверки своих знаний,обратная связь отличная."

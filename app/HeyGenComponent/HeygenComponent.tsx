@@ -24,7 +24,7 @@ const predefinedVoiceId = "077ab11b14f04ce0b49b5f6e5cc20979";
 
 
 export function HeyGen() {
-
+    const chatContainerRef = useRef<HTMLDivElement>(null);
     const [isAvatarLoading, setIsAvatarLoading] = useState(true);
     const [stream, setStream] = useState<MediaStream | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null); // Add this state if needed
@@ -62,6 +62,12 @@ export function HeyGen() {
             setJwtToken(savedToken);
         }
     }, []);
+
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    }, [chatMessages, isChatOpen]);
 
 
     const handleGetFeedbackAndExit = async () => {
@@ -666,7 +672,7 @@ export function HeyGen() {
                         </IconButton>
                     </div>
                     <hr className="pb-4" />
-                    <div className="flex-grow overflow-y-auto">
+                    <div className="flex-grow overflow-y-auto" ref={chatContainerRef}>
                         {chatMessages.map((msg, index) => (
                             <div key={index} className={`mb-4 ${msg.sender === 'user' ? 'text-right' : 'text-left'}`}>
                                 <div className={`inline-block p-2 rounded-lg ${msg.sender === 'user' ? 'bg-blue-100' : 'bg-gray-100'}`}>
