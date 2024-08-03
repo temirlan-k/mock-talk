@@ -869,7 +869,6 @@ export function HeyGen() {
                 isOpen={isAuthModalOpen}
                 onClose={() => setIsAuthModalOpen(false)}
                 onAuthSuccess={(token) => {
-                    // После успешной авторизации, закрываем модальное окно и выполняем выход
                     setIsAuthModalOpen(false);
                     endSession(data as SessionData || null, setDebug, setIsLoading, setChatMessages, setErrorMessage, router);
                 }}

@@ -8,7 +8,6 @@ const LoginPage = () => {
     const [isLoginFormOpen, setIsLoginFormOpen] = useState(true);
 
     const handleLoginSuccess = () => {
-        // Handle login success, e.g., update user state or show a success message
         console.log("Login successful!");
     };
 

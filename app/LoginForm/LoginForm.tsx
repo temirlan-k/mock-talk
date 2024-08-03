@@ -37,7 +37,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ isOpen, onClose, onLoginSuccess }
             toast({ title: "Успешный вход", description: "Добро пожаловать!" });
             onClose();
             onLoginSuccess(); // Notify Header to update user state
-            router.push('/talk'); // Redirect to another page if needed
+            router.push('/'); // Redirect to another page if needed
         } catch (error: any) {
             if (error.response && error.response.status === 401) {
                 // Handle specific error status code
