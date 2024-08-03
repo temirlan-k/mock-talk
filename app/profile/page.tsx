@@ -101,69 +101,64 @@ export default function ProfilePage() {
                     <TabsTrigger value="profile">Профиль</TabsTrigger>
                     <TabsTrigger value="feedbacks">AI Отчет</TabsTrigger>
                 </TabsList>
-                <TabsContent value="profile">
-                    <Card>
-                        <CardHeader className="flex flex-col items-center space-y-4">
-
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleSubmit} className="space-y-4">
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input
-                                        id="email"
-                                        name="email"
-                                        type="email"
-                                        value={profile.email}
-                                        onChange={handleInputChange}
-                                        readOnly={!isEditing}
-                                    />
-                                </div>
-
-                                {isEditing && (
-                                    <div className="flex justify-end">
-                                        <Button type="submit">Save Changes</Button>
-                                    </div>
-                                )}
-
-                            </form>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
                 <TabsContent value="feedbacks">
                     <Card>
                         <CardHeader className="flex justify-between items-center">
                             <div>
+                                <CardTitle>AI Отчет</CardTitle>
                                 <p className="text-muted-foreground">Персонализированные анализы интервью сессии</p>
                             </div>
                             <Button variant="outline" onClick={fetchProfileAndFeedbacks}>
-                                Refresh
+                                Обновить
                             </Button>
                         </CardHeader>
                         <CardContent>
                             {isLoading ? (
                                 <div className="flex justify-center items-center h-[400px]">
-                                    <p>Loading...</p>
+                                    <p>Загрузка...</p>
                                 </div>
                             ) : feedbacks.length > 0 ? (
-                                <ScrollArea className="h-[500px] w-full rounded-md border p-4">
+                                <ScrollArea className="h-[600px] w-full rounded-md border p-4">
                                     {feedbacks.map((feedback: any, index: number) => (
-                                        <div key={feedback._id} className="mb-6 p-6 bg-secondary rounded-lg shadow-md">
-                                            <div className="flex justify-between items-center mb-3">
-                                                <h3 className="text-lg font-semibold">Feedback #{feedbacks.length - index}</h3>
+                                        <div key={feedback._id} className="mb-8 p-6 bg-secondary rounded-lg shadow-md">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h3 className="text-xl font-semibold">Отчет #{feedbacks.length - index}</h3>
                                                 <span className="text-sm text-muted-foreground">
                                                     {new Date(feedback.timestamp * 1000).toLocaleString()}
                                                 </span>
                                             </div>
-                                            <p className="mt-2 text-base leading-relaxed">{feedback.feedback}</p>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <h4 className="text-lg font-medium mb-2">Анализ интервью:</h4>
+                                                    <div className="pl-4 border-l-2 border-primary">
+                                                        {feedback.feedback.split('\n\n').map((section: string, sectionIndex: number) => (
+                                                            <div key={sectionIndex} className="mb-4">
+                                                                <p className="whitespace-pre-wrap">{section}</p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                {feedback.history && (
+                                                    <div>
+                                                        <h4 className="text-lg font-medium mb-2">История диалога:</h4>
+                                                        <div className="space-y-2">
+                                                            {feedback.history.map((entry: any, entryIndex: number) => (
+                                                                <div key={entryIndex} className={`p-2 rounded ${entry.role === 'Human' ? 'bg-blue-100' : 'bg-green-100'}`}>
+                                                                    <span className="font-semibold">{entry.role === 'Human' ? 'Вы: ' : 'AI: '}</span>
+                                                                    {entry.content}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
                                 </ScrollArea>
                             ) : (
                                 <div className="text-center py-10">
-                                    <p className="text-xl font-semibold mb-2">No feedbacks available yet</p>
-                                    <p className="text-muted-foreground">Complete an interview to receive AI feedback</p>
+                                    <p className="text-xl font-semibold mb-2">Отчеты пока недоступны</p>
+                                    <p className="text-muted-foreground">Пройдите интервью, чтобы получить AI-отчет</p>
                                 </div>
                             )}
                         </CardContent>

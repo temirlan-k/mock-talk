@@ -52,7 +52,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
             toast({ title: "Успешный вход", description: "Добро пожаловать!" });
             onClose();
             onAuthSuccess(token);
-            router.push('/talk');
+            router.push('/');
         } catch (error: any) {
             if (error.response && error.response.status === 401) {
                 setErrors({
