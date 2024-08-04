@@ -12,8 +12,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import LoginForm from '../LoginForm/LoginForm';
 import RegisterForm from '../RegisterForm/RegisterForm';
+import LogoutIcon from '@mui/icons-material/Logout';
 
-const Header: React.FC = () => {
+import PersonIcon from '@mui/icons-material/Person';
+
+
+const Header: React.FC = () => {    
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [userEmail, setUserEmail] = useState<string | null>(null);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -61,7 +65,7 @@ const Header: React.FC = () => {
     };
 
     return (
-        <header className="bg-white text-black shadow-md">
+        <header className="bg-white text-black shadow-md sticky top-0 z-50">
             <div className="container mx-auto px-4 py-3">
                 <div className="flex justify-between items-center">
                     <Link href="/" className="flex items-center space-x-3">
@@ -71,60 +75,67 @@ const Header: React.FC = () => {
 
                     <nav className="hidden md:flex items-center space-x-6">
                         {userEmail ? (
-                            <>
-                                <Link href="/profile" className="text-black hover:text-grey transition-colors">
-                                    <Button>{userEmail}</Button>
+                            <div className="flex items-center space-x-4">
+                                <Link href="/profile">
+                                    <Button variant="outline" className="flex items-center">
+                                        <PersonIcon className="mr-2" />
+                                        {userEmail}
+                                    </Button>
                                 </Link>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" className="flex items-center">
-                                            <ChevronDown className="ml-2 h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onClick={handleLogout}>
-                                            Выйти
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </>
+                                <Button variant="ghost" onClick={handleLogout} className="text-red-600 hover:text-red-800 hover:bg-red-100">
+                                    <LogoutIcon className="mr-2 h-4 w-4" />
+                                    Выйти
+                                </Button>
+                            </div>
                         ) : (
                             <>
-                                <Button onClick={() => setIsLoginModalOpen(true)}>Вход</Button>
+                                <Button variant="outline" onClick={() => setIsLoginModalOpen(true)}>Вход</Button>
                                 <Button onClick={() => setIsRegisterModalOpen(true)}>Регистрация</Button>
                             </>
                         )}
                     </nav>
 
-                    <button
-                        onClick={toggleMenu}
-                        className="md:hidden text-black focus:outline-none"
-                    >
-                        {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                    </button>
+                    <div className="md:hidden flex items-center">
+                        {userEmail && (
+                            <Link href="/profile" className="mr-4">
+                                <Button variant="outline" size="sm" className="flex items-center">
+                                    <PersonIcon className="mr-1 h-4 w-4" />
+                                    Профиль
+                                </Button>
+                            </Link>
+                        )}
+                        <button
+                            onClick={toggleMenu}
+                            className="text-black focus:outline-none"
+                        >
+                            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {isMenuOpen && (
-                <nav className="md:hidden">
-                    <ul className="flex flex-col items-center space-y-4 py-4">
+                <nav className="md:hidden bg-gray-100 py-4">
+                    <ul className="flex flex-col items-stretch space-y-4 px-4">
                         {userEmail ? (
                             <>
                                 <li>
-                                    <Link href="/profile" className="text-gray-600 hover:text-black transition-colors">
+                                    <Button variant="outline" className="w-full justify-start">
+                                        <PersonIcon className="mr-2 h-4 w-4" />
                                         {userEmail}
-                                    </Link>
+                                    </Button>
                                 </li>
                                 <li>
-                                    <Button variant="ghost" className="text-gray-600 hover:text-black transition-colors" onClick={handleLogout}>
+                                    <Button variant="ghost" className="w-full justify-start text-red-600 hover:text-red-800 hover:bg-red-100" onClick={handleLogout}>
+                                        <LogoutIcon className="mr-2 h-4 w-4" />
                                         Выйти
                                     </Button>
                                 </li>
                             </>
                         ) : (
                             <>
-                                <li><Button onClick={() => setIsLoginModalOpen(true)}>Вход</Button></li>
-                                <li><Button onClick={() => setIsRegisterModalOpen(true)}>Регистрация</Button></li>
+                                <li><Button className="w-full" onClick={() => { setIsLoginModalOpen(true); setIsMenuOpen(false); }}>Вход</Button></li>
+                                <li><Button className="w-full" variant="outline" onClick={() => { setIsRegisterModalOpen(true); setIsMenuOpen(false); }}>Регистрация</Button></li>
                             </>
                         )}
                     </ul>
@@ -134,7 +145,7 @@ const Header: React.FC = () => {
             <LoginForm
                 isOpen={isLoginModalOpen}
                 onClose={() => setIsLoginModalOpen(false)}
-                onLoginSuccess={handleLoginSuccess} // Pass the onLoginSuccess prop here
+                onLoginSuccess={handleLoginSuccess}
             />
             <RegisterForm
                 isOpen={isRegisterModalOpen}
