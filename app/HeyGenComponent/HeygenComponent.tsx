@@ -564,7 +564,7 @@ export function HeyGen() {
                             setDebug("Playing");
                             setTimeout(async () => {
                                 if (!hasSpokenWelcomeMessage) {
-                                    const welcomeMessage = "Здравствуйте! Я ваш виртуальный интервьюер.Давайте начнем. Расскажите немного о себе.";
+                                    const welcomeMessage = "Здравствуйте Я ваш виртуальный интервьюер.Расскажите немного о себе.";
                                     if (data.sessionId) { // Ensure sessionId is defined
                                         await speakText(welcomeMessage, data.sessionId);
                                         setHasSpokenWelcomeMessage(true);
