@@ -139,6 +139,62 @@ export function Landing() {
         localStorage.setItem('grade', experience);
     };
 
+    const positions = {
+        "Разработчики": [
+            { value: "frontend", label: "Frontend Developer" },
+            { value: "backend", label: "Backend Developer" },
+            { value: "fullstack", label: "Fullstack Developer" },
+            { value: "android-developer", label: "Android Developer" },
+            { value: "ios-developer", label: "IOS Developer" },
+            { value: "mobile-crossplarform-dev", label: "Mobile Cross Platform Developer" },
+            { value: "machine-learning", label: "Machine Learning Engineer" },
+            { value: "data-engineer", label: "Data Engineer" },
+            { value: "game-developer", label: "Game Developer" },
+            { value: "embedded-systems-engineer", label: "Embedded Systems Engineer" },
+            { value: "hardware-engineer", label: "Hardware Engineer" },
+        ],
+        "Аналитика и управление данными": [
+            { value: "data-analytics", label: "Data Analytics" },
+            { value: "data-science", label: "Data Science" },
+            { value: "big-data-engineer", label: "Big Data Engineer" },
+            { value: "business-analyst", label: "Business Analyst" },
+            { value: "systems-analyst", label: "Systems Analyst" },
+        ],
+        "Архитектура и администрирование": [
+            { value: "software-architect", label: "Software Architect" },
+            { value: "cloud-architect", label: "Cloud Architect" },
+            { value: "network-architect", label: "Network Architect" },
+
+            { value: "system-administrator", label: "System Administrator" },
+            { value: "database-administrator", label: "Database Administrator" },
+        ],
+        "Безопасность и тестирование": [
+            { value: "cybersecurity", label: "Cybersecurity Specialist" },
+            { value: "penetration-tester", label: "Penetration Tester" },
+            { value: "security-analyst", label: "Security Analyst" },
+            { value: "security-consultant", label: "Security Consultant" },
+            { value: "devsecops-engineer", label: "DevSecOps Engineer" },
+        ],
+        "Управление проектами и консультирование": [
+            { value: "it-consultant", label: "IT Consultant" },
+            { value: "project-manager", label: "Project Manager" },
+            { value: "product-manager", label: "Product Manager" },
+            { value: "scrum-master", label: "Scrum Master" },
+            { value: "agile-coach", label: "Agile Coach" },
+            { value: "it-auditor", label: "IT Auditor" },
+            { value: "ai-ml-product-manager", label: "AI/ML Product Manager" },
+        ],
+        "Прочие": [
+            { value: "devops", label: "DevOps Engineer" },
+            { value: "technical-support-engineer", label: "Technical Support Engineer" },
+            { value: "robotics-engineer", label: "Robotics Engineer" },
+            { value: "iot-engineer", label: "IoT Engineer" },
+            { value: "blockchain-architect", label: "Blockchain Architect" },
+            { value: "data-structures-and-algorithms", label: "Data Structures and Algorithms" },
+            { value: "visa-interview", label: "VISA Interview" },
+        ],
+    };
+
     return (
         <div className="flex flex-col min-h-screen bg-gray-100 text-gray-900">
             <Header />
@@ -163,16 +219,14 @@ MockTalk - ваш путь к успешному интервью!              
                                 </DialogTrigger>
                                 <DialogContent className="sm:max-w-[425px] mx-auto">
                                     <DialogHeader>
-                                        <VisuallyHidden>
-                                            <DialogTitle>Настройки тренировки</DialogTitle>
-                                        </VisuallyHidden>
+                                        <DialogTitle>Настройки тренировки</DialogTitle>
                                         <DialogDescription>
                                             Выберите позицию и уровень опыта.
                                         </DialogDescription>
                                     </DialogHeader>
                                     <div className="grid gap-4 py-4">
                                         <div className="grid grid-cols-4 items-center gap-4">
-                                            <Label htmlFor="specialization" className="text-right">
+                                            <Label htmlFor="position" className="text-right">
                                                 Позиция
                                             </Label>
                                             <Select value={position} onValueChange={setPosition}>
@@ -180,21 +234,16 @@ MockTalk - ваш путь к успешному интервью!              
                                                     <SelectValue placeholder="Выберите" />
                                                 </SelectTrigger>
                                                 <SelectContent className="max-h-60 overflow-y-auto">
-                                                    <SelectGroup>
-                                                        <SelectItem value="frontend">Frontend</SelectItem>
-                                                        <SelectItem value="backend">Backend</SelectItem>
-                                                        <SelectItem value="fullstack">Fullstack</SelectItem>
-                                                        <SelectItem value="devops">DevOps</SelectItem>
-                                                        <SelectItem value="android-developer">Android Developer</SelectItem>
-                                                        <SelectItem value="ios-developer">IOS Developer</SelectItem>
-                                                        <SelectItem value="mobile-crossplarform dev">Mobile Cross Platform Developer</SelectItem>
-                                                        <SelectItem value="machine-learning">Machine Learning</SelectItem>
-                                                        <SelectItem value="data-analytics">Data analytics</SelectItem>
-                                                        <SelectItem value="data-science">Data Science</SelectItem>
-                                                        <SelectItem value="cybersecurity">Cybersecurity</SelectItem>
-                                                        <SelectItem value="data-structures-and-algorithms">DSA</SelectItem>
-                                                        <SelectItem value="visa-interview">VISA Interview </SelectItem>
-                                                    </SelectGroup>
+                                                    {Object.entries(positions).map(([group, items]) => (
+                                                        <SelectGroup key={group}>
+                                                            <SelectLabel>{group}</SelectLabel>
+                                                            {items.map((item) => (
+                                                                <SelectItem key={item.value} value={item.value}>
+                                                                    {item.label}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectGroup>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -206,25 +255,21 @@ MockTalk - ваш путь к успешному интервью!              
                                                 <SelectTrigger className="w-[180px]">
                                                     <SelectValue placeholder="Выберите" />
                                                 </SelectTrigger>
-                                                <SelectContent className="max-h-60 overflow-y-auto">
-                                                    <SelectGroup>
-                                                        <SelectItem value="intern">Intern</SelectItem>
-                                                        <SelectItem value="junior">Junior</SelectItem>
-                                                        <SelectItem value="mid">Mid</SelectItem>
-                                                        <SelectItem value="senior">Senior</SelectItem>
-                                                        <SelectItem value="lead">Lead</SelectItem>
-                                                    </SelectGroup>
+                                                <SelectContent>
+                                                    <SelectItem value="intern">Intern</SelectItem>
+                                                    <SelectItem value="junior">Junior</SelectItem>
+                                                    <SelectItem value="mid">Mid</SelectItem>
+                                                    <SelectItem value="senior">Senior</SelectItem>
+                                                    <SelectItem value="lead">Lead</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                     </div>
-                                    <div className="flex justify-center">
-                                        <DialogFooter>
-                                            <Link href='/talk'>
-                                                <Button type="submit" onClick={handleSaveSettings}>Начать</Button>
-                                            </Link>
-                                        </DialogFooter>
-                                    </div>
+                                    <DialogFooter>
+                                        <Link href='/talk'>
+                                            <Button type="submit" onClick={handleSaveSettings}>Начать</Button>
+                                        </Link>
+                                    </DialogFooter>
                                 </DialogContent>
                             </Dialog>
                             
