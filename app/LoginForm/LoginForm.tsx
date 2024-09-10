@@ -30,7 +30,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ isOpen, onClose, onLoginSuccess }
         setErrors({}); // Clear previous errors
 
         try {
-            const response = await axios.post("https://backend-mt-production.up.railway.app/token", formData, {
+            const response = await axios.post("https://plankton-app-osvji.ondigitalocean.app/token", formData, {
                 headers: { 'Content-Type': 'application/json' }
             });
             localStorage.setItem("userToken", response.data.token);

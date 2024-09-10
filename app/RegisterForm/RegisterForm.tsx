@@ -32,7 +32,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ isOpen, onClose }) => {
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
-            const response = await axios.post("https://backend-mt-production.up.railway.app/register", formData);
+            const response = await axios.post("https://plankton-app-osvji.ondigitalocean.app/register", formData);
             localStorage.setItem("userToken", response.data.token);
             toast({ title: "Регистрация успешна", description: "Вы успешно зарегистрированы." });
             onClose();

@@ -164,7 +164,6 @@ export function Landing() {
             { value: "software-architect", label: "Software Architect" },
             { value: "cloud-architect", label: "Cloud Architect" },
             { value: "network-architect", label: "Network Architect" },
-
             { value: "system-administrator", label: "System Administrator" },
             { value: "database-administrator", label: "Database Administrator" },
         ],

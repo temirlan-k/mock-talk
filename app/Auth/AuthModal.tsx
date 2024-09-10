@@ -44,7 +44,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
         setErrors({});
 
         try {
-            const response = await axios.post("https://backend-mt-production.up.railway.app/token", loginData, {
+            const response = await axios.post("https://plankton-app-osvji.ondigitalocean.app/token", loginData, {
                 headers: { 'Content-Type': 'application/json' }
             });
             const token = response.data.token;
@@ -75,7 +75,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
         setErrors({});
 
         try {
-            const response = await axios.post("https://backend-mt-production.up.railway.app/register", registerData, {
+            const response = await axios.post("https://plankton-app-osvji.ondigitalocean.app/register", registerData, {
                 headers: { 'Content-Type': 'application/json' }
             });
             const token = response.data.token;

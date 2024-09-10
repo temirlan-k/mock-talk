@@ -17,7 +17,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 
 
-const Header: React.FC = () => {    
+const Header: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [userEmail, setUserEmail] = useState<string | null>(null);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -38,7 +38,7 @@ const Header: React.FC = () => {
         const token = localStorage.getItem("userToken");
         if (token) {
             try {
-                const response = await axios.get("https://backend-mt-production.up.railway.app/users/me", {
+                const response = await axios.get("https://plankton-app-osvji.ondigitalocean.app/users/me", {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }

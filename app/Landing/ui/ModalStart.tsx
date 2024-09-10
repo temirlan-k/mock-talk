@@ -39,7 +39,7 @@ export function InterviewSettingsModal() {
         setIsLoading(true)
 
         try {
-            const response = await axios.post('https://backend-mt-production.up.railway.app/initialize-session/', {
+            const response = await axios.post('https://plankton-app-osvji.ondigitalocean.app/initialize-session/', {
                 company_name: company,
                 interview_type: section,
                 stack: stack,

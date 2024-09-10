@@ -16,8 +16,8 @@ import ForumIcon from '@mui/icons-material/Forum';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import './style.css';
 
-const BASE_LOCAL_URL = 'https://backend-mt-production.up.railway.app';
-const BASE_DEV_URL = 'https://backend-mt-production.up.railway.app';
+const BASE_LOCAL_URL = 'https://plankton-app-osvji.ondigitalocean.app';
+const BASE_DEV_URL = 'https://plankton-app-osvji.ondigitalocean.app';
 
 const predefinedAvatarId = "josh_lite3_20230714";
 const predefinedVoiceId = "077ab11b14f04ce0b49b5f6e5cc20979";
@@ -141,7 +141,7 @@ export function HeyGen() {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             console.log("Микрофон успешно активирован");
 
-            let mimeType:any = getSupportedMimeType();
+            let mimeType: any = getSupportedMimeType();
             if (!mimeType) {
                 console.error("No supported MIME type found");
                 alert("Ваш браузер не поддерживает ни один из требуемых форматов аудио");
@@ -418,7 +418,7 @@ export function HeyGen() {
 
             const startRequest: CreateStreamingAvatarRequest = {
                 newSessionRequest: {
-                    quality: NewSessionRequestQualityEnum.Low,
+                    quality: NewSessionRequestQualityEnum.High,
                     avatarName: predefinedAvatarId,
                     voice: { voiceId: predefinedVoiceId }
                 }

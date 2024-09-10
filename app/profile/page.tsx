@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
-const BASE_URL = "https://backend-mt-production.up.railway.app"
+const BASE_URL = "https://plankton-app-osvji.ondigitalocean.app"
 
 export default function ProfilePage() {
     const router = useRouter()

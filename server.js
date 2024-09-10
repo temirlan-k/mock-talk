@@ -15,8 +15,8 @@ import ForumIcon from '@mui/icons-material/Forum';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import './style.css';
 
-const BASE_LOCAL_URL = 'https://backend-mt-production.up.railway.app';
-const BASE_DEV_URL = 'https://backend-mt-production.up.railway.app';
+const BASE_LOCAL_URL = 'https://plankton-app-osvji.ondigitalocean.app';
+const BASE_DEV_URL = 'https://plankton-app-osvji.ondigitalocean.app';
 
 const predefinedAvatarId = "josh_lite3_20230714";
 const predefinedVoiceId = "077ab11b14f04ce0b49b5f6e5cc20979";
