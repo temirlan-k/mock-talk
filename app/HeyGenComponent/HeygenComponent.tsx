@@ -418,7 +418,7 @@ export function HeyGen() {
 
             const startRequest: CreateStreamingAvatarRequest = {
                 newSessionRequest: {
-                    quality: NewSessionRequestQualityEnum.High,
+                    quality: NewSessionRequestQualityEnum.Low,
                     avatarName: predefinedAvatarId,
                     voice: { voiceId: predefinedVoiceId }
                 }
