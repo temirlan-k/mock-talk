@@ -16,7 +16,7 @@ import ForumIcon from '@mui/icons-material/Forum';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import './style.css';
 
-const BASE_LOCAL_URL = 'https://plankton-app-osvji.ondigitalocean.app';
+const BASE_LOCAL_URL = 'https://atlantys.kz/test';
 const BASE_DEV_URL = 'http://0.0.0.0:8080';
 
 const predefinedAvatarId = "josh_lite3_20230714";

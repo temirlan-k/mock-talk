@@ -38,7 +38,7 @@ const Header: React.FC = () => {
         const token = localStorage.getItem("userToken");
         if (token) {
             try {
-                const response = await axios.get("https://plankton-app-osvji.ondigitalocean.app/users/me", {
+                const response = await axios.get("https://atlantys.kz/test/users/me", {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }

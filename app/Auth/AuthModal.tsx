@@ -7,6 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 
+
+const BASE_LOCAL_URL = 'https://atlantys.kz/test';
+const BASE_DEV_URL = 'https://atlantys.kz/test';
+
+
 // Define the props type
 interface AuthModalProps {
     isOpen: boolean;
@@ -44,7 +49,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
         setErrors({});
 
         try {
-            const response = await axios.post("https://plankton-app-osvji.ondigitalocean.app/token", loginData, {
+            const response = await axios.post("https://atlantys.kz/test/token", loginData, {
                 headers: { 'Content-Type': 'application/json' }
             });
             const token = response.data.token;
@@ -75,7 +80,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuccess })
         setErrors({});
 
         try {
-            const response = await axios.post("https://plankton-app-osvji.ondigitalocean.app/register", registerData, {
+            const response = await axios.post("https://atlantys.kz/test/register", registerData, {
                 headers: { 'Content-Type': 'application/json' }
             });
             const token = response.data.token;
