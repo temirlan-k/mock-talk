@@ -382,9 +382,6 @@ MockTalk - ваш путь к успешному интервью!              
                                 <CarouselItem key={testimonial.id}>
                                     <Card className="border-none shadow-lg">
                                         <CardContent className="flex flex-col items-center text-center p-6">
-                                            <div className="flex justify-center items-center mb-4">
-                                                <img className="w-16 h-16 bg-gray-200 rounded-full mb-2" src={testimonial?.image} alt="" />
-                                            </div>
                                             <h3 className="text-xl font-semibold">{testimonial.name}</h3>
                                             <p className="text-sm text-gray-600">{testimonial.role}</p>
                                             <p className="text-gray-700 mt-4">{testimonial.content}</p>

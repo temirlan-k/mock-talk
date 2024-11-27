@@ -69,7 +69,6 @@ const Header: React.FC = () => {
             <div className="container mx-auto px-4 py-3">
                 <div className="flex justify-between items-center">
                     <Link href="/" className="flex items-center space-x-3">
-                        <img src="https://svgshare.com/i/18Ms.svg" width={40} height={40} alt="MockTalk.ai Logo" className="w-10 h-10" />
                         <span className="text-xl font-bold">MockTalk.ai</span>
                     </Link>
 
